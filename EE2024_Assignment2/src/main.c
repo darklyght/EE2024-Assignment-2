@@ -28,8 +28,8 @@
 #define NOTE_PIN_HIGH() GPIO_SetValue(0, 1<<26)
 #define NOTE_PIN_LOW()  GPIO_ClearValue(0, 1<<26)
 #define ACC_THRESHOLD 20
-#define TEMP_HIGH_WARNING 270
-#define OBSTACLE_NEAR_THRESHOLD 500
+#define TEMP_HIGH_WARNING 280
+#define OBSTACLE_NEAR_THRESHOLD 100
 #define TEMP_SCALAR_DIV10 1
 #define NUM_HALF_PERIODS 340
 
@@ -117,14 +117,17 @@ void accx_display_gen(void);
 void accy_display_gen(void);
 void accz_display_gen(void);
 void temp_display_gen(void);
+uint16_t obstacle_led_gen(int light);
 
 static void init_peripherals(void) {
 	init_gpio();
 	init_ssp();
 	init_i2c();
 	acc_init();
+	light_init();
 	rgb_init();
 	led7seg_init();
+	pca9532_init();
 	oled_init();
 	oled_clearScreen(OLED_COLOR_BLACK);
 	NVIC_EnableIRQ(EINT3_IRQn);
@@ -235,6 +238,7 @@ static void to_mode_stationary(void) {
 	accelState = ACCEL_OFF;
 	tempState = TEMP_OFF;
 	obstacleState = OBSTACLE_OFF;
+	light_shutdown();
 	LPC_GPIOINT->IO0IntEnR &= !(1<<2);
 	LPC_GPIOINT->IO0IntEnF &= !(1<<2);
 }
@@ -261,6 +265,18 @@ static void to_mode_forward(void) {
 static void to_mode_reverse(void) {
 	oled_clearScreen(OLED_COLOR_BLACK);
 	oled_putString(0, 0, MODE_DISPLAY[modeStateNext], OLED_COLOR_WHITE, OLED_COLOR_BLACK);
+	rgbState = BLINK_OFF;
+	accelState = ACCEL_NORMAL;
+	tempState = TEMP_NORMAL;
+	obstacleState = OBSTACLE_OFF;
+	light_enable();
+	light_setMode(LIGHT_MODE_D1);
+	light_setWidth(LIGHT_WIDTH_12BITS);
+	light_setRange(LIGHT_RANGE_4000);
+	light_setLoThreshold(OBSTACLE_NEAR_THRESHOLD);
+	light_setIrqInCycles(LIGHT_CYCLE_8);
+	LPC_GPIOINT->IO0IntEnR &= !(1<<2);
+	LPC_GPIOINT->IO0IntEnF &= !(1<<2);
 	x1msTicks = 0;
 	x1sTicks = 0;
 }
@@ -308,6 +324,12 @@ static void in_mode_forward(void) {
 }
 
 static void in_mode_reverse(void) {
+	uint16_t luxVal = 0;
+	if (x1msTicks - x1sTicks >= 1000) {
+		x1sTicks = x1msTicks;
+		luxVal = light_read();
+		pca9532_setLeds(obstacle_led_gen(luxVal), ~obstacle_led_gen(luxVal));
+	}
 }
 
 static void rgb_set(uint8_t ledMask) {
@@ -388,6 +410,43 @@ void temp_display_gen(void) {
 	strcat((char*)TEMP_DISPLAY, "TEMP: ");
 	sprintf(s, "%.1f", temp/10.0);
 	strcat((char*)TEMP_DISPLAY, s);
+}
+
+uint16_t obstacle_led_gen(int light) {
+	float num = light / 243.25;
+	if (num < 1) {
+		return 0x0001;
+	} else if (num < 2) {
+		return 0x0003;
+	} else if (num < 3) {
+		return 0x0007;
+	} else if (num < 4) {
+		return 0x000F;
+	} else if (num < 5) {
+		return 0x001F;
+	} else if (num < 6) {
+		return 0x003F;
+	} else if (num < 7) {
+		return 0x007F;
+	} else if (num < 8) {
+		return 0x00FF;
+	} else if (num < 9) {
+		return 0x01FF;
+	} else if (num < 10) {
+		return 0x03FF;
+	} else if (num < 11) {
+		return 0x07FF;
+	} else if (num < 12) {
+		return 0x0FFF;
+	} else if (num < 13) {
+		return 0x1FFF;
+	} else if (num < 14) {
+		return 0x3FFF;
+	} else if (num < 15) {
+		return 0x7FFF;
+	} else {
+		return 0xFFFF;
+	}
 }
 
 void SysTick_Handler(void) {
