@@ -9,6 +9,7 @@
 
 uint8_t ACCX_DISPLAY[16] = "";
 uint8_t TEMP_DISPLAY[16] = "";
+uint8_t UART_DISPLAY[64] = "";
 
 uint32_t sw3Ticks = 0;
 uint16_t luxVal = 0;
@@ -71,10 +72,10 @@ int main (void) {
 				to_mode_stationary(&catsState);
 				break;
 			case MODE_FORWARD:
-				to_mode_forward(&catsState, &catsTicks, &catsAcc, &catsTemp, ACCX_DISPLAY, TEMP_DISPLAY);
+				to_mode_forward(&catsState, &catsTicks, &catsAcc, &catsTemp, ACCX_DISPLAY, TEMP_DISPLAY, UART_DISPLAY);
 				break;
 			case MODE_REVERSE:
-				to_mode_reverse(&catsState, &catsTicks);
+				to_mode_reverse(&catsState, &catsTicks, UART_DISPLAY);
 				break;
 			}
 			sw3Ticks = 0;
@@ -84,10 +85,10 @@ int main (void) {
 			in_mode_stationary(&catsState);
 			break;
 		case MODE_FORWARD:
-			in_mode_forward(&catsState, &catsTicks, &catsAcc, &catsTemp, ACCX_DISPLAY, TEMP_DISPLAY);
+			in_mode_forward(&catsState, &catsTicks, &catsAcc, &catsTemp, ACCX_DISPLAY, TEMP_DISPLAY, UART_DISPLAY);
 			break;
 		case MODE_REVERSE:
-			in_mode_reverse(&catsState, &catsTicks, &luxVal, &catsSpeaker);
+			in_mode_reverse(&catsState, &catsTicks, &luxVal, &catsSpeaker, UART_DISPLAY);
 			break;
 		}
 	}

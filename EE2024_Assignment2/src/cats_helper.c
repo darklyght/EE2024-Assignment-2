@@ -57,7 +57,7 @@ void acc_display_gen(uint8_t* ACCX_DISPLAY, int8_t accX) {
 	char s[16] = "";
 	strcpy((char*)ACCX_DISPLAY, "");
 	strcat((char*)ACCX_DISPLAY, "X ACCEL: ");
-	sprintf(s, "%.1f ", accX / ACC_DIV);
+	sprintf(s, "%.2f", accX / ACC_DIV);
 	strcat((char*)ACCX_DISPLAY, s);
 }
 
@@ -65,8 +65,23 @@ void temp_display_gen(uint8_t* TEMP_DISPLAY, int32_t temp) {
 	char s[16] = "";
 	strcpy((char*)TEMP_DISPLAY, "");
 	strcat((char*)TEMP_DISPLAY, "TEMP: ");
-	sprintf(s, "%.1f", temp/10.0);
+	sprintf(s, "%.2f", temp/10.0);
 	strcat((char*)TEMP_DISPLAY, s);
+}
+
+void set_uart_message(uint8_t* UART_DISPLAY, char* string) {
+	strcpy((char*)UART_DISPLAY, "");
+	strcat((char*)UART_DISPLAY, string);
+}
+
+void uart_display_gen(char* UART_MESSAGE, uint32_t messageCounter, int8_t accX, int32_t temp) {
+	char s[16] = "";
+	sprintf(s, "%03d_Temp_", (int)messageCounter);
+	strcpy(UART_MESSAGE, s);
+	sprintf(s, "%.2f_ACC_", temp/10.0);
+	strcat(UART_MESSAGE, s);
+	sprintf(s, "%.2f\r\n", accX / ACC_DIV);
+	strcat(UART_MESSAGE, s);
 }
 
 uint16_t obstacle_led_gen(uint16_t light) {
