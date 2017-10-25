@@ -18,9 +18,9 @@ void rgb_set(uint8_t ledMask) {
 		GPIO_ClearValue(2, 1);
 	}
 	if ((ledMask & RGB_BLUE) != 0) {
-		GPIO_SetValue(0, (1<<26));
+		GPIO_SetValue(2, (1<<8));
 	} else {
-		GPIO_ClearValue(0, (1<<26));
+		GPIO_ClearValue(2, (1<<8));
 	}
 }
 
@@ -30,14 +30,14 @@ void rgb_blink(STATE* catsState) {
 		rgb_set(0x00);
 		break;
 	case BLINK_BLUE:
-		if ((GPIO_ReadValue(2) & 0x1) || (GPIO_ReadValue(0)>>26) & 0x1) {
+		if ((GPIO_ReadValue(2) & 0x1) || (GPIO_ReadValue(2)>>8) & 0x1) {
 			rgb_set(0x00);
 		} else {
 			rgb_set(0x02);
 		}
 		break;
 	case BLINK_RED:
-		if ((GPIO_ReadValue(2) & 0x1) || (GPIO_ReadValue(0)>>26) & 0x1) {
+		if ((GPIO_ReadValue(2) & 0x1) || (GPIO_ReadValue(2)>>8) & 0x1) {
 			rgb_set(0x00);
 		} else {
 			rgb_set(0x01);
@@ -130,5 +130,15 @@ uint32_t obstacle_speaker_gen(uint16_t light) {
 		return 249;
 	} else {
 		return 124;
+	}
+}
+
+void volume_adjust(uint8_t rotary, uint8_t* volumeAdjust) {
+	if (rotary == 0x01) {
+		GPIO_SetValue(2, 1<<7);
+		*volumeAdjust = 0;
+	} else if (rotary == 0x02) {
+		GPIO_ClearValue(2, 1<<7);
+		*volumeAdjust = 0;
 	}
 }

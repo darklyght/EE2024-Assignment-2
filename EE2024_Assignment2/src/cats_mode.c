@@ -17,6 +17,8 @@ uint32_t messageCounter = 0;
 uint8_t obstacleMessageSent = 0;
 
 void to_mode_stationary(STATE* catsState) {
+	acc_interrupt_clear();
+	acc_interrupt_init();
 	oled_clearScreen(OLED_COLOR_BLACK);
 	oled_putString(0, 0, MODE_DISPLAY[catsState->modeStateNext], OLED_COLOR_WHITE, OLED_COLOR_BLACK);
 	led7seg_setChar(0xFF, TRUE);
@@ -27,10 +29,11 @@ void to_mode_stationary(STATE* catsState) {
 	catsState->tempState = TEMP_OFF;
 	catsState->rgbState = BLINK_OFF;
 	catsState->obstacleState = OBSTACLE_OFF;
-	acc_setMode(ACC_MODE_STANDBY);
+//	acc_setMode(ACC_MODE_STANDBY);
 	light_shutdown();
-	LPC_GPIOINT->IO0IntEnR &= !(1<<2);
-	LPC_GPIOINT->IO0IntEnF &= !(1<<2);
+	LPC_TIM0->TCR &= ~(1 << 0);
+	LPC_GPIOINT->IO0IntEnR &= ~(1<<2);
+	LPC_GPIOINT->IO0IntEnF &= ~(1<<2);
 }
 
 void to_mode_forward(STATE* catsState, TICKS* catsTicks, ACC* catsAcc, TEMP_VARS* catsTemp, uint8_t* ACCX_DISPLAY, uint8_t* TEMP_DISPLAY, uint8_t* UART_DISPLAY) {
@@ -72,8 +75,8 @@ void to_mode_reverse(STATE* catsState, TICKS* catsTicks, uint8_t* UART_DISPLAY) 
 	light_setRange(LIGHT_RANGE_4000);
 	light_setLoThreshold(OBSTACLE_NEAR_THRESHOLD);
 	light_setIrqInCycles(LIGHT_CYCLE_8);
-	LPC_GPIOINT->IO0IntEnR &= !(1<<2);
-	LPC_GPIOINT->IO0IntEnF &= !(1<<2);
+	LPC_GPIOINT->IO0IntEnR &= ~(1<<2);
+	LPC_GPIOINT->IO0IntEnF &= ~(1<<2);
 	catsTicks->x1msTicks = 0;
 	catsTicks->x1sTicks = 0;
 }
@@ -133,17 +136,14 @@ void in_mode_forward(STATE* catsState, TICKS* catsTicks, ACC* catsAcc, TEMP_VARS
 }
 
 void in_mode_reverse(STATE* catsState, TICKS* catsTicks, uint16_t* luxVal, SPEAKER* catsSpeaker, uint8_t* UART_DISPLAY) {
-	if (catsSpeaker->pwmOn && catsTicks->x1msTicks - catsSpeaker->pwmTicks >= 1) {
-		catsSpeaker->pwmTicks = catsTicks->x1msTicks;
-		NOTE_PIN_HIGH();
-	} else {
-		NOTE_PIN_LOW();
-	}
 	if (catsState->obstacleState == OBSTACLE_NEAR && catsTicks->x1msTicks - catsSpeaker->speakerTicks >= obstacle_speaker_gen(*luxVal)) {
 		catsSpeaker->speakerTicks = catsTicks->x1msTicks;
 		if (catsSpeaker->pwmOn) {
+			NOTE_PIN_LOW();
+			LPC_TIM0->TCR &= ~(1 << 0);
 			catsSpeaker->pwmOn = 0;
 		} else {
+			LPC_TIM0->TCR |= 1 << 0;
 			catsSpeaker->pwmOn = 1;
 		}
 	}
@@ -161,6 +161,7 @@ void in_mode_reverse(STATE* catsState, TICKS* catsTicks, uint16_t* luxVal, SPEAK
 			}
 		} else {
 			catsState->obstacleState = OBSTACLE_FAR;
+			LPC_TIM0->TCR &= ~(1 << 0);
 			oled_putString(0, 40, (uint8_t*)"             ", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
 			obstacleMessageSent = 0;
 		}

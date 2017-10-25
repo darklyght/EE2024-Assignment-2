@@ -16,6 +16,7 @@
 #include "lpc17xx_uart.h"
 
 #include "joystick.h"
+#include "rotary.h"
 #include "pca9532.h"
 #include "acc.h"
 #include "oled.h"

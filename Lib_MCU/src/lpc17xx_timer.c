@@ -105,7 +105,8 @@ uint32_t TIM_ConverUSecToVal (uint32_t timernum, uint32_t usec)
  **********************************************************************/
 uint32_t TIM_ConverPtrToTimeNum (LPC_TIM_TypeDef *TIMx)
 {
-	uint32_t tnum = -1;
+//	uint32_t tnum = -1;
+	uint32_t tnum = (uint32_t)-1;
 
 	if (TIMx == LPC_TIM0)
 	{
@@ -272,8 +273,11 @@ void TIM_Init(LPC_TIM_TypeDef *TIMx, uint8_t TimerCounterMode, void *TIM_ConfigS
 
 	}
 
-	TIMx->CCR &= ~TIM_CTCR_MODE_MASK;
-	TIMx->CCR |= TIM_TIMER_MODE;
+//	TIMx->CCR &= ~TIM_CTCR_MODE_MASK;
+//	TIMx->CCR |= TIM_TIMER_MODE;
+
+	TIMx->CTCR &= ~TIM_CTCR_MODE_MASK;
+	TIMx->CTCR |= TimerCounterMode;
 
 	TIMx->TC =0;
 	TIMx->PC =0;

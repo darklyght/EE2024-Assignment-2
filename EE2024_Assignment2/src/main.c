@@ -13,6 +13,7 @@ uint8_t UART_DISPLAY[64] = "";
 
 uint32_t sw3Ticks = 0;
 uint16_t luxVal = 0;
+uint8_t volumeAdjust = -1;
 
 STATE catsState;
 ACC catsAcc = {0, 0, 0};
@@ -22,6 +23,17 @@ SPEAKER catsSpeaker = {0, 0, 0};
 
 void SysTick_Handler(void) {
 	catsTicks.x1msTicks++;
+	acc_interrupt_clear();
+	if (volumeAdjust >= 0 && volumeAdjust < 3) {
+		GPIO_ClearValue(2, 1<<6);
+		volumeAdjust++;
+	} else if (volumeAdjust >= 3 && volumeAdjust < 6) {
+		GPIO_SetValue(2, 1<<6);
+		volumeAdjust++;
+	} else if (volumeAdjust >= 6 && volumeAdjust < 9) {
+		GPIO_ClearValue(2, 1<<6);
+		volumeAdjust++;
+	}
 }
 
 void EINT3_IRQHandler(void) {
@@ -36,6 +48,18 @@ void EINT3_IRQHandler(void) {
 			catsState.modeStateNext = MODE_STATIONARY;
 		}
 		LPC_GPIOINT->IO2IntClr |= 1<<10;
+	}
+	if ((LPC_GPIOINT->IO0IntStatF>>24) & 0x1 || (LPC_GPIOINT->IO0IntStatF>>25) & 0x1) {
+		volume_adjust(rotary_read(), &volumeAdjust);
+		LPC_GPIOINT->IO0IntClr |= 1<<24;
+		LPC_GPIOINT->IO0IntClr |= 1<<25;
+	}
+	if ((LPC_GPIOINT->IO0IntStatR>>3) & 0x1) {
+//		printf("%d %d %d\n", (int)acc_interrupt_read(0x06), (int)acc_interrupt_read(0x07), (int)acc_interrupt_read(0x08));
+		printf("%d\n", (int)acc_interrupt_read(0x0A));
+		LPC_GPIOINT->IO0IntClr |= 1<<3;
+//		printf("%d %d %d\n", (int)acc_interrupt_read(0x06), (int)acc_interrupt_read(0x07), (int)acc_interrupt_read(0x08));
+//		printf("%d\n", (int)acc_interrupt_read(0x0A));
 	}
 	if (((LPC_GPIOINT->IO0IntStatR>>2) & 0x1) || ((LPC_GPIOINT->IO0IntStatF>>2) & 0x1)) {
 		if (!catsTemp.tempT1 && !catsTemp.tempT2) {
@@ -56,6 +80,15 @@ void EINT3_IRQHandler(void) {
 		}
 		LPC_GPIOINT->IO0IntClr |= 1<<2;
 	}
+}
+
+void TIMER0_IRQHandler(void) {
+	if (GPIO_ReadValue(0)>>26 & 0x1) {
+		NOTE_PIN_LOW();
+	} else {
+		NOTE_PIN_HIGH();
+	}
+	LPC_TIM0->IR |= 1 << 0;
 }
 
 int main (void) {
@@ -82,6 +115,7 @@ int main (void) {
 		}
 		switch (catsState.modeState) {
 		case MODE_STATIONARY:
+//			printf("%d %d %d\n", (int)acc_interrupt_read(0x06), (int)acc_interrupt_read(0x07), (int)acc_interrupt_read(0x08));
 			in_mode_stationary(&catsState);
 			break;
 		case MODE_FORWARD:
