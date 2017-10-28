@@ -8,6 +8,9 @@
 #ifndef HEADER_H_
 #define HEADER_H_
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_gpio.h"
 #include "lpc17xx_i2c.h"
@@ -25,8 +28,8 @@
 #include "led7seg.h"
 #include "light.h"
 
-#include <stdio.h>
-#include <string.h>
+#include "stdio.h"
+#include "string.h"
 
 #define TEMP_DIV 1
 #define TOTAL_HALF_PERIODS 340
@@ -96,5 +99,7 @@ typedef struct {
 	uint8_t temp[6];
 	uint8_t light[6];
 } DISPLAY;
+
+xTaskHandle xRGBBlinkHandle;
 
 #endif /* HEADER_H_ */

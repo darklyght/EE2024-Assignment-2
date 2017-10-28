@@ -14,6 +14,7 @@
 #include "cats_mode.h"
 #include "cats_sw3.h"
 #include "cats_acc.h"
+#include "cats_sseg.h"
 #include "cats_rgb.h"
 #include "cats_oled.h"
 #include "cats_amp.h"

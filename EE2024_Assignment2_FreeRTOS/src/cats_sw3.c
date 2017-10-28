@@ -22,19 +22,3 @@ void sw3_init(void) {
 	LPC_SC->EXTPOLAR &= ~(1<<0);	// Set falling edge detection
 	NVIC_EnableIRQ(EINT0_IRQn);
 }
-
-void sw3_timer_init(void) {
-	LPC_SC->PCONP |= (1<<1);		// Power up Timer0
-	LPC_SC->PCLKSEL0 |= (1<<2);		// CCLK
-	LPC_TIM0->MR0 = 0x05F5E100;		// Match0 1s
-	LPC_TIM0->MCR |= (1<<0);		// Interrupt on Match0
-	LPC_TIM0->MCR |= (1<<1);		// Reset on Match0
-	LPC_TIM0->MCR |= (1<<2);		// Stop on Match0
-	NVIC_EnableIRQ(TIMER0_IRQn);
-}
-
-void sw3_timer_start(void) {
-	LPC_TIM0->TCR |= (1<<1);		// Reset Timer0
-	LPC_TIM0->TCR &= ~(1<<1);		// Clear reset
-	LPC_TIM0->TCR |= (1<<0);		// Start timer
-}

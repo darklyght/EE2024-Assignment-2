@@ -32,12 +32,3 @@ void acc_display(uint8_t* accDisplay, float acc) {
 	oled_putString(60, 20, (uint8_t*)"     ", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
 	oled_putString(60, 20, accDisplay, OLED_COLOR_WHITE, OLED_COLOR_BLACK);
 }
-
-//void oled_status_forward(STATE* state) {
-//	if (state->tempState == TEMP_HIGH) {
-//		oled_putString(0, 40, "Temp. too high", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-//	}
-//	if (state->accState == ACC_HIGH) {
-//		oled_putString(0, 50, "Air bag released", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-//	}
-//}

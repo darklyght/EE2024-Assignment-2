@@ -19,7 +19,7 @@ void temperature_init(void) {
 	GPIO_SetDir(0, (1<<2), 0);
 }
 
-void temperature_measure(STATE* state, TICKS* ticks, TEMP* temp) {
+void temperature_measure(TICKS* ticks, TEMP* temp) {
 	if (!temp->temperatureT1 && !temp->temperatureT2) {
 		temp->temperatureT1 = ticks->x1msTicks;
 	} else if (temp->temperatureT1 && !temp->temperatureT2) {
@@ -33,9 +33,6 @@ void temperature_measure(STATE* state, TICKS* ticks, TEMP* temp) {
 				temp->temperatureT2 = (0xFFFFFFFF - temp->temperatureT1 + 1) + temp->temperatureT2;
 			}
 			temp->temperature = (2*1000*temp->temperatureT2) / (TOTAL_HALF_PERIODS*TEMP_DIV) - 2731;
-			if (temp->temperature > TEMP_THRESHOLD) {
-				state->tempState = TEMP_HIGH;
-			}
 			temp->temperatureT1 = 0;
 			temp->temperatureT2 = 0;
 			temp->halfPeriods = 0;

@@ -37,7 +37,7 @@ static int I2CWrite(uint8_t addr, uint8_t* buf, uint32_t len) {
 	}
 }
 
-void acc_calibrate(void) {
+void acc_calibrate() {
 	uint8_t buf[2];
 //	uint32_t i;
 
@@ -52,8 +52,9 @@ void acc_calibrate(void) {
 	buf[0] = ACC_ADDR_XOUT8;
 	I2CWrite(ACC_I2C_ADDR, buf, 1);
 	I2CRead(ACC_I2C_ADDR, buf, 1);
-
-	buf[1] = 0x00;
+	printf("Initial acceleration reading: %d\n", (int)buf[0]);
+	buf[1] = ((buf[0]^0xFF) + 1)<<1;
+	printf("Offset adjustment: %d\n", (int)buf[1]);
 	buf[0] = ACC_ADDR_XOFFL;
 	I2CWrite(ACC_I2C_ADDR, buf, 2);
 
@@ -63,7 +64,6 @@ void acc_calibrate(void) {
 //		printf("%d\n", (int)buf[1]);
 //		buf[0] = ACC_ADDR_XOFFL;
 //		I2CWrite(ACC_I2C_ADDR, buf, 2);
-//		for (i = 0; i < 10000; i++)
 //		buf[0] = ACC_ADDR_XOUT8;
 //		I2CWrite(ACC_I2C_ADDR, buf, 1);
 //		I2CRead(ACC_I2C_ADDR, buf, 1);
@@ -95,12 +95,28 @@ void acc_interrupt_init(void) {
 	GPIO_SetDir(0, (1<<3), 0);
 	LPC_GPIOINT->IO0IntEnR |= 1<<3;
 
+//	buf[0] = ACC_ADDR_MCTL;
+//	buf[1] = 0x02;
+//	I2CWrite(ACC_I2C_ADDR, buf, 2);
+//
+//	buf[0] = ACC_ADDR_CTL1;
+//	buf[1] = 0x31;
+//	I2CWrite(ACC_I2C_ADDR, buf, 2);
+//
+//	buf[0] = ACC_ADDR_CTL2;
+//	buf[1] = 0x00;
+//	I2CWrite(ACC_I2C_ADDR, buf, 2);
+//
+//	buf[0] = ACC_ADDR_LDTH;
+//	buf[1] = (uint8_t)(ACC_THRESHOLD * ACC_DIV_LEVEL + 1);
+//	I2CWrite(ACC_I2C_ADDR, buf, 2);
+
 	buf[0] = ACC_ADDR_MCTL;
-	buf[1] = 0x02;
+	buf[1] = 0x03;
 	I2CWrite(ACC_I2C_ADDR, buf, 2);
 
 	buf[0] = ACC_ADDR_CTL1;
-	buf[1] = 0x31;
+	buf[1] = 0x30;
 	I2CWrite(ACC_I2C_ADDR, buf, 2);
 
 	buf[0] = ACC_ADDR_CTL2;
@@ -108,15 +124,27 @@ void acc_interrupt_init(void) {
 	I2CWrite(ACC_I2C_ADDR, buf, 2);
 
 	buf[0] = ACC_ADDR_LDTH;
-	buf[1] = (uint8_t)(ACC_THRESHOLD * ACC_DIV_LEVEL + 1);
+	buf[1] = 0x7F;
+	I2CWrite(ACC_I2C_ADDR, buf, 2);
+
+	buf[0] = ACC_ADDR_PDTH;
+	buf[1] = (uint8_t)(ACC_THRESHOLD * ACC_DIV_LEVEL);
+	I2CWrite(ACC_I2C_ADDR, buf, 2);
+
+	buf[0] = ACC_ADDR_PW;
+	buf[1] = 0xFF;
 	I2CWrite(ACC_I2C_ADDR, buf, 2);
 }
 
 void acc_interrupt_start(void) {
 	uint8_t buf[2];
 
+//	buf[0] = ACC_ADDR_MCTL;
+//	buf[1] = 0x02;
+//	I2CWrite(ACC_I2C_ADDR, buf, 2);
+
 	buf[0] = ACC_ADDR_MCTL;
-	buf[1] = 0x02;
+	buf[1] = 0x03;
 	I2CWrite(ACC_I2C_ADDR, buf, 2);
 
 	LPC_GPIOINT->IO0IntEnR |= 1<<3;

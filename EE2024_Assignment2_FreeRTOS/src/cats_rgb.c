@@ -28,9 +28,9 @@ void rgb_set(uint8_t mask) {
 void rgb_blink(STATE* state) {
 	if (state->accState == ACC_HIGH && state->tempState == TEMP_HIGH) {
 		if (GPIO_ReadValue(2)>>0 & 0x1) {
-			rgb_set(RGB_BLUE);
+			rgb_set(RGB_OFF);
 		} else {
-			rgb_set(RGB_RED);
+			rgb_set(RGB_BLUE | RGB_RED);
 		}
 	} else if (state->accState == ACC_HIGH) {
 		if (GPIO_ReadValue(2)>>8 & 0x1) {

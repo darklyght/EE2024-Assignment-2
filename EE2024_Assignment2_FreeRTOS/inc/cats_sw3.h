@@ -11,7 +11,5 @@
 #include "cats_header.h"
 
 void sw3_init(void);
-void sw3_timer_init(void);
-void sw3_timer_start(void);
 
 #endif /* CATS_SW3_H_ */

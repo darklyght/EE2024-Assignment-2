@@ -12,14 +12,14 @@ uint8_t SEGMENT_DISPLAY[16] = "0123456789ABCDEF";
 void to_mode_stationary(STATE* state, TICKS* ticks) {
 	oled_clearScreen(OLED_COLOR_BLACK);
 	oled_putString(0, 0, (uint8_t*)"STATIONARY", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-	led7seg_setChar(0xFF, TRUE);
+	sseg_set(0xFF, TRUE);
 	rgb_set(0x00);
-	timer_stop();
+	vTaskSuspend(xRGBBlinkHandle);
 	acc_interrupt_stop();
 	acc_interrupt_clear();
-	lights_stop();
-	pca9532_setLeds (0x0000, 0xFFFF);
-	amp_stop();
+//	lights_stop();
+//	pca9532_setLeds (0x0000, 0xFFFF);
+//	amp_stop();
 	state->modeState = MODE_STATIONARY;
 	state->accState = ACC_OFF;
 	state->tempState = TEMP_OFF;
@@ -36,9 +36,9 @@ void to_mode_forward(STATE* state, TICKS* ticks, TEMP* temp, DATA* data, DISPLAY
 	data->temp = temp->temperature;
 	acc_display(display->acc, data->acc);
 	temp_display(display->temp, data->temp);
-	led7seg_setChar('0', FALSE);
+	sseg_set('0', FALSE);
 	rgb_set(0x00);
-	timer_start_forward();
+	vTaskResume(xRGBBlinkHandle);
 	acc_interrupt_clear();
 	acc_interrupt_start();
 	state->modeState = MODE_FORWARD;
@@ -51,10 +51,9 @@ void to_mode_forward(STATE* state, TICKS* ticks, TEMP* temp, DATA* data, DISPLAY
 void to_mode_reverse(STATE* state, TICKS* ticks) {
 	oled_clearScreen(OLED_COLOR_BLACK);
 	oled_putString(0, 0, (uint8_t*)"REVERSE", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-	led7seg_setChar(0xFF, TRUE);
-	rgb_set(0x00);
-	timer_start_reverse(0x1);
-	lights_start();
+	sseg_set(0xFF, TRUE);
+//	rgb_set(0x00);
+//	lights_start();
 	state->modeState = MODE_REVERSE;
 	state->accState = ACC_OFF;
 	state->tempState = TEMP_OFF;
@@ -70,7 +69,7 @@ void in_mode_forward(TICKS* ticks, TEMP* temp, DATA* data, DISPLAY* display) {
 	data->acc = acc_measure();
 	data->temp = temp->temperature;
 	ticks->x1sTicks++;
-	led7seg_setChar(SEGMENT_DISPLAY[ticks->x1sTicks % 16], FALSE);
+	sseg_set(SEGMENT_DISPLAY[ticks->x1sTicks % 16], FALSE);
 	if (ticks->x1sTicks % 16 == 5 || ticks->x1sTicks % 16 == 10 || ticks->x1sTicks % 16 == 15) {
 		temp_display(display->temp, data->temp);
 		acc_display(display->acc, data->acc);
@@ -82,17 +81,17 @@ void in_mode_forward(TICKS* ticks, TEMP* temp, DATA* data, DISPLAY* display) {
 }
 
 void in_mode_reverse(STATE* state, DATA* data, AMP* amp) {
-	data->light = lights_measure();
-	uint16_t led = lights_to_led(data->light);
-	if (data->light > LIGHT_THRESHOLD) {
-		if (state->lightState != LIGHT_HIGH) {
-			state->lightState = LIGHT_HIGH;
-			oled_putString(0, 40, (uint8_t*)"Obstacle near", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-		}
-	} else {
-		state->lightState = LIGHT_NORMAL;
-		oled_putString(0, 40, (uint8_t*)"             ", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-		amp_stop();
-	}
-	pca9532_setLeds (led, ~led);
+//	data->light = lights_measure();
+//	uint16_t led = lights_to_led(data->light);
+//	if (data->light > LIGHT_THRESHOLD) {
+//		if (state->lightState != LIGHT_HIGH) {
+//			state->lightState = LIGHT_HIGH;
+//			oled_putString(0, 40, (uint8_t*)"Obstacle near", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
+//		}
+//	} else {
+//		state->lightState = LIGHT_NORMAL;
+//		oled_putString(0, 40, (uint8_t*)"             ", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
+//		amp_stop();
+//	}
+//	pca9532_setLeds (led, ~led);
 }

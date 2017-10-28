@@ -14,6 +14,7 @@
 #include "cats_acc.h"
 #include "cats_temp.h"
 #include "cats_light.h"
+#include "cats_sseg.h"
 #include "cats_rgb.h"
 #include "cats_amp.h"
 

@@ -7,24 +7,22 @@
 
 #include "cats_init.h"
 
-void init_peripherals(void) {
+void init_peripherals() {
 	init_ssp();
 	init_i2c();
 	init_uart();
-	led7seg_init();
+	sseg_init();
 	oled_init();
 	oled_clearScreen(OLED_COLOR_BLACK);
 	sw3_init();
-	sw3_timer_init();
-	timer_init();
-//	acc_calibrate();
+	acc_calibrate();
 	acc_interrupt_init();
 	temperature_init();
 	temperature_start();
-	lights_init();
-	pca9532_init();
+//	lights_init();
+//	pca9532_init();
 	rgb_init();
-	amp_init();
+//	amp_init();
 	NVIC_EnableIRQ(EINT3_IRQn);
 }
 
