@@ -21,11 +21,11 @@ void temperature_init(void) {
 
 void temperature_measure(TICKS* ticks, TEMP* temp) {
 	if (!temp->temperatureT1 && !temp->temperatureT2) {
-		temp->temperatureT1 = ticks->x1msTicks;
+		temp->temperatureT1 = (int)xTaskGetTickCountFromISR();
 	} else if (temp->temperatureT1 && !temp->temperatureT2) {
 		temp->halfPeriods++;
 		if (temp->halfPeriods == TOTAL_HALF_PERIODS) {
-			temp->temperatureT2 = ticks->x1msTicks;
+			temp->temperatureT2 = (int)xTaskGetTickCountFromISR();
 			if (temp->temperatureT2 > temp->temperatureT1) {
 				temp->temperatureT2 = temp->temperatureT2 - temp->temperatureT1;
 			}

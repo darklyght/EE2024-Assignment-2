@@ -36,7 +36,7 @@ void amp_init(void) {
 
 	LPC_SC->PCONP |= 1<<22;		// Power up Timer 2
 	LPC_SC->PCLKSEL1 |= 1<<12;	// CCLK
-	LPC_TIM2->MR0 = 1<<16;		// Suitable for LED
+	LPC_TIM2->MR0 = 1<<18;		// Suitable for LED
 	LPC_TIM2->MCR |= 1<<0;		// Interrupt on Match0
 	LPC_TIM2->MCR |= 1<<1;		// Reset timer on Match0
 	LPC_TIM2->TCR |= 1<<1;		// Reset Timer2
@@ -45,7 +45,7 @@ void amp_init(void) {
 	NVIC_EnableIRQ(TIMER2_IRQn);
 }
 
-void amp_beep(STATE* state, AMP* amp) {
+void amp_beep(AMP* amp) {
 	if (amp->pwmOn) {
 		pwm_low();
 		LPC_TIM2->TCR &= ~(1<<0);
@@ -74,10 +74,10 @@ void pwm_high(void) {
 void amp_volume(uint8_t rotary, uint8_t* ampVolume) {
 	if (rotary == 0x01) {
 		GPIO_SetValue(2, 1<<7);
-		*ampVolume = 0;
+		*ampVolume = 1;
 	} else if (rotary == 0x02) {
 		GPIO_ClearValue(2, 1<<7);
-		*ampVolume = 0;
+		*ampVolume = 1;
 	}
 }
 

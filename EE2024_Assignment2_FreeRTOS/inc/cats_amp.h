@@ -11,7 +11,7 @@
 #include "cats_header.h"
 
 void amp_init(void);
-void amp_beep(STATE* state, AMP* amp);
+void amp_beep(AMP* amp);
 void amp_stop(void);
 void pwm_low(void);
 void pwm_high(void);

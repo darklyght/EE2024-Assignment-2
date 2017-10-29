@@ -19,10 +19,10 @@ void init_peripherals() {
 	acc_interrupt_init();
 	temperature_init();
 	temperature_start();
-//	lights_init();
-//	pca9532_init();
+	lights_init();
+	pca9532_init();
 	rgb_init();
-//	amp_init();
+	amp_init();
 	NVIC_EnableIRQ(EINT3_IRQn);
 }
 

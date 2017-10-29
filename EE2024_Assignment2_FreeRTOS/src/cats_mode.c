@@ -14,12 +14,14 @@ void to_mode_stationary(STATE* state, TICKS* ticks) {
 	oled_putString(0, 0, (uint8_t*)"STATIONARY", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
 	sseg_set(0xFF, TRUE);
 	rgb_set(0x00);
+	amp_stop();
 	vTaskSuspend(xRGBBlinkHandle);
+	vTaskSuspend(xAmpBeepHandle);
+	vTaskSuspend(xAmpVolumeHandle);
 	acc_interrupt_stop();
 	acc_interrupt_clear();
-//	lights_stop();
-//	pca9532_setLeds (0x0000, 0xFFFF);
-//	amp_stop();
+	lights_stop();
+	pca9532_setLeds(0x0000, 0xFFFF);
 	state->modeState = MODE_STATIONARY;
 	state->accState = ACC_OFF;
 	state->tempState = TEMP_OFF;
@@ -52,8 +54,10 @@ void to_mode_reverse(STATE* state, TICKS* ticks) {
 	oled_clearScreen(OLED_COLOR_BLACK);
 	oled_putString(0, 0, (uint8_t*)"REVERSE", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
 	sseg_set(0xFF, TRUE);
-//	rgb_set(0x00);
-//	lights_start();
+	rgb_set(0x00);
+	lights_start();
+	vTaskResume(xAmpBeepHandle);
+	vTaskResume(xAmpVolumeHandle);
 	state->modeState = MODE_REVERSE;
 	state->accState = ACC_OFF;
 	state->tempState = TEMP_OFF;
@@ -81,17 +85,16 @@ void in_mode_forward(TICKS* ticks, TEMP* temp, DATA* data, DISPLAY* display) {
 }
 
 void in_mode_reverse(STATE* state, DATA* data, AMP* amp) {
-//	data->light = lights_measure();
-//	uint16_t led = lights_to_led(data->light);
-//	if (data->light > LIGHT_THRESHOLD) {
-//		if (state->lightState != LIGHT_HIGH) {
-//			state->lightState = LIGHT_HIGH;
-//			oled_putString(0, 40, (uint8_t*)"Obstacle near", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-//		}
-//	} else {
-//		state->lightState = LIGHT_NORMAL;
-//		oled_putString(0, 40, (uint8_t*)"             ", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-//		amp_stop();
-//	}
-//	pca9532_setLeds (led, ~led);
+	data->light = lights_measure();
+	uint16_t led = lights_to_led(data->light);
+	if (data->light > LIGHT_THRESHOLD) {
+		if (state->lightState != LIGHT_HIGH) {
+			oled_putString(0, 40, (uint8_t*)"Obstacle near", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
+			state->lightState = LIGHT_HIGH;
+		}
+	} else {
+		oled_putString(0, 40, (uint8_t*)"             ", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
+		state->lightState = LIGHT_NORMAL;
+	}
+	pca9532_setLeds (led, ~led);
 }

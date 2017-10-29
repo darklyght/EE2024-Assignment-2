@@ -101,5 +101,7 @@ typedef struct {
 } DISPLAY;
 
 xTaskHandle xRGBBlinkHandle;
+xTaskHandle xAmpBeepHandle;
+xTaskHandle xAmpVolumeHandle;
 
 #endif /* HEADER_H_ */

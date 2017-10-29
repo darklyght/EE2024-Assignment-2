@@ -68,15 +68,39 @@ uint16_t lights_to_led(uint32_t light) {
 	}
 }
 
-uint8_t lights_to_beep(uint32_t light) {
-	if (light <= 100) {
-		return 0x1;
-	} else if (light < 841) {
-		return 0x2;
-	} else if (light < 3000) {
-		return 0x3;
+float lights_to_beep(uint32_t light) {
+	if (light < 242) {
+		return 1;
+	} else if (light < 484) {
+		return 1.5;
+	} else if (light < 726) {
+		return 2;
+	} else if (light < 968) {
+		return 2.5;
+	} else if (light < 1210) {
+		return 3;
+	} else if (light < 1452) {
+		return 3.5;
+	} else if (light < 1694) {
+		return 4;
+	} else if (light < 1936) {
+		return 4.5;
+	} else if (light < 2178) {
+		return 5;
+	} else if (light < 2420) {
+		return 5.5;
+	} else if (light < 2662) {
+		return 6;
+	} else if (light < 2904) {
+		return 6.5;
+	} else if (light < 3146) {
+		return 7;
+	} else if (light < 3388) {
+		return 7.5;
+	} else if (light < 3630) {
+		return 8;
 	} else {
-		return 0x4;
+		return 8.5;
 	}
 }
 
