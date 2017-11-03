@@ -18,55 +18,48 @@ DISPLAY display = {"", "", ""};
 
 static void vSwitchModeTask(void *pvParameters) {
 	portTickType xLastWakeTime;
-	while (1) {
-		if (sw3 > 0) {
-			switch (state.modeState) {
-			case MODE_STATIONARY:
-				xLastWakeTime = xTaskGetTickCount();
-				vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/1);
-				if (sw3 == 1) {
-					to_mode_forward(&state, &ticks, &temp, &data, &display);
-					sw3 = 0;
-					state.modeState = MODE_FORWARD;
-				} else {
-					to_mode_reverse(&state, &ticks);
-					sw3 = 0;
-					state.modeState = MODE_REVERSE;
-				}
-				break;
-			case MODE_FORWARD:
-				to_mode_stationary(&state, &ticks);
-				sw3 = 0;
-				state.modeState = MODE_STATIONARY;
-				break;
-			case MODE_REVERSE:
-				to_mode_stationary(&state, &ticks);
-				sw3 = 0;
-				state.modeState = MODE_STATIONARY;
-				break;
+	if (sw3 > 0) {
+		switch (state.modeState) {
+		case MODE_STATIONARY:
+			xLastWakeTime = xTaskGetTickCount();
+			vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/1);
+			if (sw3 == 1) {
+				to_mode_forward(&state, &ticks, &temp, &data, &display);
+			} else {
+				to_mode_reverse(&state, &ticks, &display);
 			}
+			vTaskResume(xModeTaskHandle);
+			break;
+		case MODE_FORWARD:
+			to_mode_stationary(&state, &ticks);
+			break;
+		case MODE_REVERSE:
+			to_mode_stationary(&state, &ticks);
+			break;
 		}
-		xLastWakeTime = xTaskGetTickCount();
-		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/10);
 	}
+	sw3 = 0;
+	vTaskDelete(NULL);
 }
 
 static void vModeTask(void *pvParameters) {
 	portTickType xLastWakeTime;
 	while (1) {
-		xLastWakeTime = xTaskGetTickCount();
-		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/1);
 		switch (state.modeState) {
 		case MODE_STATIONARY:
 			in_mode_stationary();
 			break;
 		case MODE_FORWARD:
-			in_mode_forward(&ticks, &temp, &data, &display);
+			in_mode_forward(&state, &ticks, &temp, &data, &display);
 			break;
 		case MODE_REVERSE:
-			in_mode_reverse(&state, &data, &amp);
+			in_mode_reverse(&state, &data, &amp, &display);
+			lights_to_led_change(data.light);
+			LPC_GPIOINT->IO2IntEnF |= (1<<5);
 			break;
 		}
+		xLastWakeTime = xTaskGetTickCount();
+		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/1);
 	}
 }
 
@@ -109,6 +102,11 @@ static void vAmpVolume(void *pvParameters) {
 }
 
 void EINT0_IRQHandler(void) {
+	if (sw3 == 0) {
+		xTaskCreate(vSwitchModeTask, (signed char *) "vSwitchModeTask",
+					configMINIMAL_STACK_SIZE*15, NULL, (tskIDLE_PRIORITY + 3UL),
+					(xTaskHandle *) &xSwitchModeTaskHandle);
+	}
 	sw3++; // Increment for each press within 1 second.
 	LPC_SC->EXTINT |= (1<<0); // Clear interrupt.
 }
@@ -129,7 +127,7 @@ void EINT3_IRQHandler(void) {
 		LPC_GPIOINT->IO0IntClr |= 1<<2;
 	}
 	if ((LPC_GPIOINT->IO2IntStatF>>5) & 0x1) {
-		in_mode_reverse(&state, &data, &amp);
+		in_mode_reverse(&state, &data, &amp, &display);
 		light_clear_interrupt();
 		LPC_GPIOINT->IO2IntClr |= 1<<5;
 		LPC_GPIOINT->IO2IntEnF &= ~(1<<5);
@@ -153,13 +151,9 @@ void TIMER2_IRQHandler(void) {
 int main(void) {
 	init_peripherals();
 
-	xTaskCreate(vSwitchModeTask, (signed char *) "vSwitchModeTask",
-					configMINIMAL_STACK_SIZE*10, NULL, (tskIDLE_PRIORITY + 3UL),
-					(xTaskHandle *) NULL);
-
 	xTaskCreate(vModeTask, (signed char *) "vModeTask",
-						configMINIMAL_STACK_SIZE*10, NULL, (tskIDLE_PRIORITY + 3UL),
-						(xTaskHandle *) NULL);
+						configMINIMAL_STACK_SIZE*20, NULL, (tskIDLE_PRIORITY + 3UL),
+						(xTaskHandle *) &xModeTaskHandle);
 
 	xTaskCreate(vRGBBlink, (signed char *) "vRGBBlink",
 							configMINIMAL_STACK_SIZE, NULL, (tskIDLE_PRIORITY + 2UL),

@@ -17,12 +17,13 @@
 #include "cats_rgb.h"
 #include "cats_oled.h"
 #include "cats_amp.h"
+#include "cats_uart.h"
 
 void to_mode_stationary(STATE* state, TICKS* ticks);
 void to_mode_forward(STATE* state, TICKS* ticks, TEMP* temp, DATA* data, DISPLAY* display);
-void to_mode_reverse(STATE* state, TICKS* ticks);
+void to_mode_reverse(STATE* state, TICKS* ticks, DISPLAY* display);
 void in_mode_stationary(void);
-void in_mode_forward(TICKS* ticks, TEMP* temp, DATA* data, DISPLAY* display);
-void in_mode_reverse(STATE* state, DATA* data, AMP* amp);
+void in_mode_forward(STATE* state, TICKS* ticks, TEMP* temp, DATA* data, DISPLAY* display);
+void in_mode_reverse(STATE* state, DATA* data, AMP* amp, DISPLAY* display);
 
 #endif /* CATS_MODE_H_ */

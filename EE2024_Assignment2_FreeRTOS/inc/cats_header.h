@@ -98,8 +98,11 @@ typedef struct {
 	uint8_t acc[6];
 	uint8_t temp[6];
 	uint8_t light[6];
+	uint8_t uart[100];
 } DISPLAY;
 
+xTaskHandle xSwitchModeTaskHandle;
+xTaskHandle xModeTaskHandle;
 xTaskHandle xRGBBlinkHandle;
 xTaskHandle xAmpBeepHandle;
 xTaskHandle xAmpVolumeHandle;
