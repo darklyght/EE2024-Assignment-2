@@ -43,9 +43,9 @@
 								<option id="gnu.c.compiler.option.preprocessor.preprocess.539338146" name="Preprocess only (-E)" superClass="gnu.c.compiler.option.preprocessor.preprocess"/>
 								<option id="gnu.c.compiler.option.preprocessor.undef.symbol.1928549274" name="Undefined symbols (-U)" superClass="gnu.c.compiler.option.preprocessor.undef.symbol"/>
 								<option id="gnu.c.compiler.option.include.paths.1595710885" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Lib_CMSISv1p30_LPC17xx}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Lib_FatFs_SD/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Lib_MCU/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Lib_CMSISv1p30_LPC17xx/inc}&quot;"/>
 								</option>
 								<option id="com.crt.advproject.gcc.lib.debug.option.optimization.level.2048433975" name="Optimization Level" superClass="com.crt.advproject.gcc.lib.debug.option.optimization.level"/>
 								<option id="gnu.c.compiler.option.optimization.flags.519271487" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags"/>
