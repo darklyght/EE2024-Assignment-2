@@ -7,6 +7,11 @@
 
 #include "cats_init.h"
 
+/******************************************************************************//*
+ * @brief 		Initialise all peripherals
+ * @param[in]	None
+ * @return 		None
+ *******************************************************************************/
 void init_peripherals() {
 	init_ssp();
 	init_i2c();
@@ -23,9 +28,23 @@ void init_peripherals() {
 	pca9532_init();
 	rgb_init();
 	amp_init();
+	NVIC_SetPriorityGrouping(0);
+	NVIC_SetPriority(EINT0_IRQn, NVIC_EncodePriority(0, 6, 0));
+	NVIC_SetPriority(EINT3_IRQn, NVIC_EncodePriority(0, 7, 0));
+	NVIC_SetPriority(TIMER2_IRQn, NVIC_EncodePriority(0, 8, 0));
+	NVIC_ClearPendingIRQ(EINT0_IRQn);
+	NVIC_ClearPendingIRQ(EINT3_IRQn);
+	NVIC_ClearPendingIRQ(TIMER2_IRQn);
+	NVIC_EnableIRQ(EINT0_IRQn);
 	NVIC_EnableIRQ(EINT3_IRQn);
+	NVIC_EnableIRQ(TIMER2_IRQn);
 }
 
+/******************************************************************************//*
+ * @brief 		Initialise SSP1
+ * @param[in]	None
+ * @return 		None
+ *******************************************************************************/
 void init_ssp(void) {
 	SSP_CFG_Type SSP_ConfigStruct;
 	PINSEL_CFG_Type PinCfg;
@@ -52,6 +71,11 @@ void init_ssp(void) {
 	SSP_Cmd(LPC_SSP1, ENABLE);
 }
 
+/******************************************************************************//*
+ * @brief 		Initialise I2C2
+ * @param[in]	None
+ * @return 		None
+ *******************************************************************************/
 void init_i2c(void) {
 	PINSEL_CFG_Type PinCfg;
 
@@ -67,6 +91,11 @@ void init_i2c(void) {
 	I2C_Cmd(LPC_I2C2, ENABLE);
 }
 
+/******************************************************************************//*
+ * @brief 		Initialise UART3
+ * @param[in]	None
+ * @return 		None
+ *******************************************************************************/
 void init_uart(void) {
 	UART_CFG_Type uartCfg;
 	PINSEL_CFG_Type PinCfg;

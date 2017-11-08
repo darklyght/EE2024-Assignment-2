@@ -7,6 +7,11 @@
 
 #include "cats_sw3.h"
 
+/******************************************************************************//*
+ * @brief 		Initialise sw3
+ * @param[in]	None
+ * @return 		None
+ *******************************************************************************/
 void sw3_init(void) {
 	PINSEL_CFG_Type PinCfg;
 
@@ -20,5 +25,4 @@ void sw3_init(void) {
 
 	LPC_SC->EXTMODE |= (1<<0);		// Set mode to edge detection
 	LPC_SC->EXTPOLAR &= ~(1<<0);	// Set falling edge detection
-	NVIC_EnableIRQ(EINT0_IRQn);
 }

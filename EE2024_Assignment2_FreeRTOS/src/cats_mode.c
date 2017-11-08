@@ -104,7 +104,6 @@ void in_mode_forward(STATE* state, TICKS* ticks, TEMP* temp, DATA* data, DISPLAY
 
 void in_mode_reverse(STATE* state, DATA* data, AMP* amp, DISPLAY* display) {
 	data->light = lights_measure();
-	uint16_t led = lights_to_led(data->light);
 	if (data->light > LIGHT_THRESHOLD) {
 		if (state->lightState != LIGHT_HIGH) {
 			oled_putString(0, 40, (uint8_t*)"Obstacle near", OLED_COLOR_WHITE, OLED_COLOR_BLACK);

@@ -47,7 +47,6 @@ float acc_measure(void);
 void acc_interrupt_init(void);
 void acc_interrupt_start(void);
 void acc_interrupt_stop(void);
-uint8_t acc_interrupt_read(uint8_t address);
 void acc_interrupt_clear(void);
 
 #endif /* CATS_ACC_H_ */

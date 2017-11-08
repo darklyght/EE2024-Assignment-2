@@ -18,28 +18,37 @@ DISPLAY display = {"", "", ""};
 
 static void vSwitchModeTask(void *pvParameters) {
 	portTickType xLastWakeTime;
-	if (sw3 > 0) {
-		switch (state.modeState) {
-		case MODE_STATIONARY:
-			xLastWakeTime = xTaskGetTickCount();
-			vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/1);
-			if (sw3 == 1) {
-				to_mode_forward(&state, &ticks, &temp, &data, &display);
-			} else {
-				to_mode_reverse(&state, &ticks, &display);
+	while (1) {
+		if (sw3 > 0) {
+			switch (state.modeState) {
+			case MODE_STATIONARY:
+				xLastWakeTime = xTaskGetTickCount();
+				vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/1);
+				if (sw3 == 1) {
+					to_mode_forward(&state, &ticks, &temp, &data, &display);
+					sw3 = 0;
+					state.modeState = MODE_FORWARD;
+				} else {
+					to_mode_reverse(&state, &ticks, &display);
+					sw3 = 0;
+					state.modeState = MODE_REVERSE;
+				}
+				break;
+			case MODE_FORWARD:
+				to_mode_stationary(&state, &ticks);
+				sw3 = 0;
+				state.modeState = MODE_STATIONARY;
+				break;
+			case MODE_REVERSE:
+				to_mode_stationary(&state, &ticks);
+				sw3 = 0;
+				state.modeState = MODE_STATIONARY;
+				break;
 			}
-			vTaskResume(xModeTaskHandle);
-			break;
-		case MODE_FORWARD:
-			to_mode_stationary(&state, &ticks);
-			break;
-		case MODE_REVERSE:
-			to_mode_stationary(&state, &ticks);
-			break;
 		}
+		xLastWakeTime = xTaskGetTickCount();
+		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/10);
 	}
-	sw3 = 0;
-	vTaskDelete(NULL);
 }
 
 static void vModeTask(void *pvParameters) {
@@ -102,11 +111,6 @@ static void vAmpVolume(void *pvParameters) {
 }
 
 void EINT0_IRQHandler(void) {
-	if (sw3 == 0) {
-		xTaskCreate(vSwitchModeTask, (signed char *) "vSwitchModeTask",
-					configMINIMAL_STACK_SIZE*15, NULL, (tskIDLE_PRIORITY + 3UL),
-					(xTaskHandle *) &xSwitchModeTaskHandle);
-	}
 	sw3++; // Increment for each press within 1 second.
 	LPC_SC->EXTINT |= (1<<0); // Clear interrupt.
 }
@@ -150,6 +154,10 @@ void TIMER2_IRQHandler(void) {
 
 int main(void) {
 	init_peripherals();
+
+	xTaskCreate(vSwitchModeTask, (signed char *) "vSwitchModeTask",
+						configMINIMAL_STACK_SIZE*10, NULL, (tskIDLE_PRIORITY + 3UL),
+						(xTaskHandle *) NULL);
 
 	xTaskCreate(vModeTask, (signed char *) "vModeTask",
 						configMINIMAL_STACK_SIZE*20, NULL, (tskIDLE_PRIORITY + 3UL),

@@ -36,11 +36,22 @@ static uint8_t chars[] = {
 
 };
 
+/******************************************************************************//*
+ * @brief 		Initialise 7-segment display
+ * @param[in]	None
+ * @return 		None
+ *******************************************************************************/
 void sseg_init (void) {
 	GPIO_SetDir(2, (1<<2), 1);
     LED7_CS_OFF();
 }
 
+/******************************************************************************//*
+ * @brief 		Set the character on the 7-segment display
+ * @param[in]	ch is the character to display
+ * @param[in]	rawMode if false turn on 7-segment as per character specified in ch
+ * @return 		None
+ *******************************************************************************/
 void sseg_set(uint8_t ch, uint32_t rawMode) {
     uint8_t val = 0xff;
     SSP_DATA_SETUP_Type xferConfig;

@@ -9,7 +9,8 @@
 #define CATS_SSEG_H_
 
 #include "cats_header.h"
-#include "lpc17xx_gpio.h"
-#include "lpc17xx_ssp.h"
+
+void sseg_init (void);
+void sseg_set(uint8_t ch, uint32_t rawMode);
 
 #endif /* CATS_SSEG_H_ */

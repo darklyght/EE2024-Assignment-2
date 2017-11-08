@@ -7,6 +7,11 @@
 
 #include "cats_temp.h"
 
+/******************************************************************************//*
+ * @brief 		Initialise temperature sensor GPIO
+ * @param[in]	None
+ * @return 		None
+ *******************************************************************************/
 void temperature_init(void) {
 	PINSEL_CFG_Type PinCfg;
 
@@ -19,6 +24,12 @@ void temperature_init(void) {
 	GPIO_SetDir(0, (1<<2), 0);
 }
 
+/******************************************************************************//*
+ * @brief 		Read the temperature using interrupt
+ * @param[in]	ticks is the tick state of the device
+ * @param[in]	temp is the temp state of the device
+ * @return 		None
+ *******************************************************************************/
 void temperature_measure(TICKS* ticks, TEMP* temp) {
 	if (!temp->temperatureT1 && !temp->temperatureT2) {
 		temp->temperatureT1 = (int)xTaskGetTickCountFromISR();
@@ -40,11 +51,21 @@ void temperature_measure(TICKS* ticks, TEMP* temp) {
 	}
 }
 
+/******************************************************************************//*
+ * @brief 		Unmask temperature sensor GPIO interrupt
+ * @param[in]	None
+ * @return 		None
+ *******************************************************************************/
 void temperature_start(void) {
 	LPC_GPIOINT->IO0IntEnR |= 1<<2;
 	LPC_GPIOINT->IO0IntEnF |= 1<<2;
 }
 
+/******************************************************************************//*
+ * @brief 		Mask temperature sensor GPIO interrupt
+ * @param[in]	None
+ * @return 		None
+ *******************************************************************************/
 void temperature_stop(void) {
 	LPC_GPIOINT->IO0IntEnR &= ~(1<<2);
 	LPC_GPIOINT->IO0IntEnF &= ~(1<<2);
