@@ -154,6 +154,7 @@ void TIMER2_IRQHandler(void) {
 
 int main(void) {
 	init_peripherals();
+	writeTestFile();
 
 	xTaskCreate(vSwitchModeTask, (signed char *) "vSwitchModeTask",
 						configMINIMAL_STACK_SIZE*10, NULL, (tskIDLE_PRIORITY + 3UL),
@@ -174,6 +175,10 @@ int main(void) {
 	xTaskCreate(vAmpVolume, (signed char *) "vAmpVolume",
 							configMINIMAL_STACK_SIZE, NULL, (tskIDLE_PRIORITY + 1UL),
 							(xTaskHandle *) &xAmpVolumeHandle);
+
+	xTaskCreate(logWriterTask, (signed char *) "logWriterTask",
+							  configMINIMAL_STACK_SIZE, NULL, (tskIDLE_PRIORITY + 1UL),
+							  &logFileWriterHandle);
 
 	to_mode_stationary(&state, &ticks);
 

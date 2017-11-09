@@ -3,17 +3,24 @@
 
 #define LOG_QUEUE_SIZE 16
 
-#include "ff.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "ff.h"
+#include <string.h>
 
 xTaskHandle logFileWriterHandle;
-QueueHandle_t logQueueHandle;
+xQueueHandle logQueueHandle;
 
 FATFS fileSystem;
 int fsStatus;
+
+/**
+ * Initializes the SD card and mounts the file system.
+ * Must be called before any file operations can occur
+ */
+void init_sdcard();
 
 /**
  * Tries to queue the specified string to the log writer
@@ -35,6 +42,9 @@ int blocking_log(char * logText);
  */
 void logWriterTask(void * pvParameters);
 
-
+/**
+ * Tries to write "Hello World!" to test.txt
+ */
+void writeTestFile();
 
 #endif /* CATS_SDCARD_H_ */

@@ -17,6 +17,7 @@
 #include "cats_sseg.h"
 #include "cats_rgb.h"
 #include "cats_amp.h"
+#include "cats_sdcard.h"
 
 void init_peripherals(void);
 void init_ssp(void);

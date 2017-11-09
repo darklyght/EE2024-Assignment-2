@@ -18,5 +18,6 @@
 #include "cats_rgb.h"
 #include "cats_oled.h"
 #include "cats_amp.h"
+#include "cats_sdcard.h"
 
 #endif /* MAIN_H_ */

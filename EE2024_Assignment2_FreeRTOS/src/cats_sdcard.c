@@ -14,7 +14,7 @@ int blocking_log(char * logText) {
 }
 
 void logWriterTask(void * pvParameters) {
-	logQueueHandle = xCreateQueue(LOG_QUEUE_SIZE, sizeof(char*));
+	logQueueHandle = xQueueCreate(LOG_QUEUE_SIZE, sizeof(char*));
 	if (fsStatus!=FR_OK) {
 		printf("File System NOT READY!\n");
 		vTaskDelete(NULL);
@@ -26,7 +26,7 @@ void logWriterTask(void * pvParameters) {
 	while (1) {
 		xQueueReceive(logQueueHandle, &logText, portMAX_DELAY);
 		f_write(&logFile, (void *)logText, strlen(logText), &bytesWritten);
-		free(logText);
+		vPortFree(logText);
 	}
 }
 
@@ -34,6 +34,15 @@ void init_sdcard() {
 	fsStatus = f_mount(0, &fileSystem);
 	if (fsStatus!=FR_OK) {
 		printf("File System mounting error!\n");
-		return 0;
 	}
+}
+
+void writeTestFile() {
+	FIL file;
+	char fileName[] = "test.txt";
+	FRESULT status = f_open(&file, (char *)fileName, FA_CREATE_ALWAYS);
+	char data[] = "Hello World!";
+	unsigned int bytesWritten;
+	f_write(&file, (void *)data, sizeof(data), &bytesWritten);
+	f_close(&file);
 }

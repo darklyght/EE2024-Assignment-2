@@ -28,6 +28,7 @@ void init_peripherals() {
 	pca9532_init();
 	rgb_init();
 	amp_init();
+	init_sdcard();
 	NVIC_SetPriorityGrouping(0);
 	NVIC_SetPriority(EINT0_IRQn, NVIC_EncodePriority(0, 6, 0));
 	NVIC_SetPriority(EINT3_IRQn, NVIC_EncodePriority(0, 7, 0));

@@ -6,9 +6,14 @@
  */
 
 #include "cats_mode.h"
+#include "cats_sdcard.h"
 
 uint8_t SEGMENT_DISPLAY[16] = "0123456789ABCDEF";
 uint32_t counter = 0;
+
+const char STATIONARY_MESSAGE[] = "Entered Stationary Mode\n";
+const char FORWARD_MESSAGE[] = "Entered Forward Mode\n";
+const char REVERSE_MESSAGE[] = "Entered Reverse Mode\n";
 
 void to_mode_stationary(STATE* state, TICKS* ticks) {
 	amp_stop();
@@ -29,6 +34,9 @@ void to_mode_stationary(STATE* state, TICKS* ticks) {
 	state->tempState = TEMP_OFF;
 	state->lightState = LIGHT_OFF;
 	ticks->x1sTicks = 0;
+	char * logMsg = pvPortMalloc(sizeof(STATIONARY_MESSAGE));
+	strcpy(logMsg, STATIONARY_MESSAGE);
+	log(logMsg);
 }
 
 void to_mode_forward(STATE* state, TICKS* ticks, TEMP* temp, DATA* data, DISPLAY* display) {
@@ -52,6 +60,9 @@ void to_mode_forward(STATE* state, TICKS* ticks, TEMP* temp, DATA* data, DISPLAY
 	state->tempState = TEMP_NORMAL;
 	state->lightState = LIGHT_OFF;
 	ticks->x1sTicks = 0;
+	char * logMsg = pvPortMalloc(sizeof(FORWARD_MESSAGE));
+	strcpy(logMsg, FORWARD_MESSAGE);
+	log(logMsg);
 }
 
 void to_mode_reverse(STATE* state, TICKS* ticks, DISPLAY* display) {
@@ -68,6 +79,9 @@ void to_mode_reverse(STATE* state, TICKS* ticks, DISPLAY* display) {
 	state->tempState = TEMP_OFF;
 	state->lightState = LIGHT_NORMAL;
 	ticks->x1sTicks = 0;
+	char * logMsg = pvPortMalloc(sizeof(REVERSE_MESSAGE));
+	strcpy(logMsg, REVERSE_MESSAGE);
+	log(logMsg);
 }
 
 void in_mode_stationary(void) {
