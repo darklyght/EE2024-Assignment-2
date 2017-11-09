@@ -7,6 +7,12 @@
 
 #include "cats_oled.h"
 
+/******************************************************************************//*
+ * @brief 		Generate OLED display for temperature
+ * @param[in]	tempDisplay is the string to print to
+ * @param[in]	temp is the temperature as measured from temperature sensor
+ * @return 		None
+ *******************************************************************************/
 void temp_display_gen(uint8_t* tempDisplay, int32_t temp) {
 	char s[16] = "";
 	strcpy((char*)tempDisplay, "");
@@ -14,6 +20,12 @@ void temp_display_gen(uint8_t* tempDisplay, int32_t temp) {
 	strcat((char*)tempDisplay, s);
 }
 
+/******************************************************************************//*
+ * @brief 		Generate OLED display for acceleration
+ * @param[in]	accDisplay is the string to print to
+ * @param[in]	acc is the acceleration as measured from accelerometer
+ * @return 		None
+ *******************************************************************************/
 void acc_display_gen(uint8_t* accDisplay, float acc) {
 	char s[16] = "";
 	strcpy((char*)accDisplay, "");
@@ -21,23 +33,26 @@ void acc_display_gen(uint8_t* accDisplay, float acc) {
 	strcat((char*)accDisplay, s);
 }
 
+/******************************************************************************//*
+ * @brief 		Display temperature on OLED
+ * @param[in]	tempDisplay is the string to print to
+ * @param[in]	temp is the temperature as measured from temperature sensor
+ * @return 		None
+ *******************************************************************************/
 void temp_display(uint8_t* tempDisplay, int32_t temp) {
 	temp_display_gen(tempDisplay, temp);
 	oled_putString(60, 10, (uint8_t*)"     ", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
 	oled_putString(60, 10, tempDisplay, OLED_COLOR_WHITE, OLED_COLOR_BLACK);
 }
 
+/******************************************************************************//*
+ * @brief 		Display acceleration on OLED
+ * @param[in]	accDisplay is the string to print to
+ * @param[in]	acc is the acceleration as measured from accelerometer
+ * @return 		None
+ *******************************************************************************/
 void acc_display(uint8_t* accDisplay, float acc) {
 	acc_display_gen(accDisplay, acc);
 	oled_putString(60, 20, (uint8_t*)"     ", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
 	oled_putString(60, 20, accDisplay, OLED_COLOR_WHITE, OLED_COLOR_BLACK);
 }
-
-//void oled_status_forward(STATE* state) {
-//	if (state->tempState == TEMP_HIGH) {
-//		oled_putString(0, 40, "Temp. too high", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-//	}
-//	if (state->accState == ACC_HIGH) {
-//		oled_putString(0, 50, "Air bag released", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-//	}
-//}

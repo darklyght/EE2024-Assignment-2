@@ -12,8 +12,9 @@
 
 void lights_init(void);
 uint32_t lights_measure(void);
-uint8_t lights_to_beep(uint32_t light);
 uint16_t lights_to_led(uint32_t light);
+void lights_to_led_change(uint32_t light);
+float lights_to_beep(uint32_t light);
 void lights_start(void);
 void lights_stop(void);
 uint8_t lights_read_interrupt(void);

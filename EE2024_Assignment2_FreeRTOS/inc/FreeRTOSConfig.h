@@ -56,8 +56,6 @@
 
 #ifndef __IASMARM__
 /* For SystemCoreClock */
-#include "LPC17xx.h"
-#include "system_LPC17xx.h"
 #include "system_LPC17xx.h"
 #endif
 
@@ -167,7 +165,7 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 
 /* Definitions that map the FreeRTOS port interrupt handlers to their CMSIS
 standard names - or at least those used in the unmodified vector table. */
-#define vPortSVCHandler SVC_Handler
+#define vPortSVCHandler SVCall_Handler
 #define xPortPendSVHandler PendSV_Handler
 #define xPortSysTickHandler SysTick_Handler
 

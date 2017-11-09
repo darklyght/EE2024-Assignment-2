@@ -8,18 +8,22 @@
 #include "cats_mode.h"
 
 uint8_t SEGMENT_DISPLAY[16] = "0123456789ABCDEF";
+uint32_t counter = 0;
 
 void to_mode_stationary(STATE* state, TICKS* ticks) {
+	amp_stop();
 	oled_clearScreen(OLED_COLOR_BLACK);
 	oled_putString(0, 0, (uint8_t*)"STATIONARY", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-	led7seg_setChar(0xFF, TRUE);
 	rgb_set(0x00);
-	timer_stop();
+	sseg_set(0xFF, TRUE);
+	vTaskSuspend(xModeTaskHandle);
+	vTaskSuspend(xRGBBlinkHandle);
+	vTaskSuspend(xAmpBeepHandle);
+	vTaskSuspend(xAmpVolumeHandle);
 	acc_interrupt_stop();
 	acc_interrupt_clear();
 	lights_stop();
-	pca9532_setLeds (0x0000, 0xFFFF);
-	amp_stop();
+	pca9532_setLeds(0x0000, 0xFFFF);
 	state->modeState = MODE_STATIONARY;
 	state->accState = ACC_OFF;
 	state->tempState = TEMP_OFF;
@@ -36,11 +40,13 @@ void to_mode_forward(STATE* state, TICKS* ticks, TEMP* temp, DATA* data, DISPLAY
 	data->temp = temp->temperature;
 	acc_display(display->acc, data->acc);
 	temp_display(display->temp, data->temp);
-	led7seg_setChar('0', FALSE);
+	sseg_set('0', FALSE);
 	rgb_set(0x00);
-	timer_start_forward();
+	vTaskResume(xRGBBlinkHandle);
 	acc_interrupt_clear();
 	acc_interrupt_start();
+	set_uart_message(display->uart, "Entering Forward mode.\r\n");
+	UART_Send(LPC_UART3, display->uart, strlen((char*)display->uart), BLOCKING);
 	state->modeState = MODE_FORWARD;
 	state->accState = ACC_NORMAL;
 	state->tempState = TEMP_NORMAL;
@@ -48,13 +54,15 @@ void to_mode_forward(STATE* state, TICKS* ticks, TEMP* temp, DATA* data, DISPLAY
 	ticks->x1sTicks = 0;
 }
 
-void to_mode_reverse(STATE* state, TICKS* ticks) {
+void to_mode_reverse(STATE* state, TICKS* ticks, DISPLAY* display) {
 	oled_clearScreen(OLED_COLOR_BLACK);
 	oled_putString(0, 0, (uint8_t*)"REVERSE", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-	led7seg_setChar(0xFF, TRUE);
 	rgb_set(0x00);
-	timer_start_reverse(0x1);
 	lights_start();
+	vTaskResume(xAmpBeepHandle);
+	vTaskResume(xAmpVolumeHandle);
+	set_uart_message(display->uart, "Entering Reverse mode.\r\n");
+	UART_Send(LPC_UART3, display->uart, strlen((char*)display->uart), BLOCKING);
 	state->modeState = MODE_REVERSE;
 	state->accState = ACC_OFF;
 	state->tempState = TEMP_OFF;
@@ -66,33 +74,45 @@ void in_mode_stationary(void) {
 
 }
 
-void in_mode_forward(TICKS* ticks, TEMP* temp, DATA* data, DISPLAY* display) {
+void in_mode_forward(STATE* state, TICKS* ticks, TEMP* temp, DATA* data, DISPLAY* display) {
 	data->acc = acc_measure();
 	data->temp = temp->temperature;
-	ticks->x1sTicks++;
-	led7seg_setChar(SEGMENT_DISPLAY[ticks->x1sTicks % 16], FALSE);
+	sseg_set(SEGMENT_DISPLAY[ticks->x1sTicks % 16], FALSE);
 	if (ticks->x1sTicks % 16 == 5 || ticks->x1sTicks % 16 == 10 || ticks->x1sTicks % 16 == 15) {
 		temp_display(display->temp, data->temp);
 		acc_display(display->acc, data->acc);
+		if (ticks->x1sTicks % 16 == 15) {
+			if (state->tempState == TEMP_HIGH) {
+				set_uart_message(display->uart, "Temperature too high.\r\n");
+				UART_Send(LPC_UART3, display->uart, strlen((char*)display->uart), BLOCKING);
+			}
+			if (state->accState == ACC_HIGH) {
+				set_uart_message(display->uart, "Collision has been detected.\r\n");
+				UART_Send(LPC_UART3, display->uart, strlen((char*)display->uart), BLOCKING);
+			}
+			uart_display_gen(display->uart, counter, data->acc, data->temp);
+			UART_Send(LPC_UART3, display->uart, strlen((char*)display->uart), BLOCKING);
+			counter++;
+		}
 	}
 	temp->temperature = 0;
 	temp->halfPeriods = 0;
 	temp->temperatureT1 = 0;
 	temp->temperatureT2 = 0;
+	ticks->x1sTicks++;
 }
 
-void in_mode_reverse(STATE* state, DATA* data, AMP* amp) {
+void in_mode_reverse(STATE* state, DATA* data, AMP* amp, DISPLAY* display) {
 	data->light = lights_measure();
-	uint16_t led = lights_to_led(data->light);
 	if (data->light > LIGHT_THRESHOLD) {
 		if (state->lightState != LIGHT_HIGH) {
-			state->lightState = LIGHT_HIGH;
 			oled_putString(0, 40, (uint8_t*)"Obstacle near", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
+			state->lightState = LIGHT_HIGH;
+			set_uart_message(display->uart, "Obstacle too near.\r\n");
+			UART_Send(LPC_UART3, display->uart, strlen((char*)display->uart), BLOCKING);
 		}
 	} else {
-		state->lightState = LIGHT_NORMAL;
 		oled_putString(0, 40, (uint8_t*)"             ", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-		amp_stop();
+		state->lightState = LIGHT_NORMAL;
 	}
-	pca9532_setLeds (led, ~led);
 }
