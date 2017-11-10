@@ -22,17 +22,19 @@ void lights_init(void) {
 	light_setLoThreshold((uint32_t)0);
 	light_clear_interrupt();
 
-	// Configure GPIO interrupt for light sensor
+	// Configure EINT2 interrupt for light sensor
 	PINSEL_CFG_Type PinCfg;
 
-	PinCfg.Funcnum = 0;
+	PinCfg.Funcnum = 1;				// Set SW3 to EINT0 function
 	PinCfg.OpenDrain = 0;
 	PinCfg.Pinmode = 0;
 	PinCfg.Portnum = 2;
-	PinCfg.Pinnum = 5;
+	PinCfg.Pinnum = 12;
 	PINSEL_ConfigPin(&PinCfg);
-	GPIO_SetDir(0, (1<<5), 0);
-	LPC_GPIOINT->IO2IntEnF &= ~(1<<5);
+	GPIO_SetDir(2, (1<<12), 0);
+
+	LPC_SC->EXTMODE |= (1<<2);		// Set mode to edge detection
+	LPC_SC->EXTPOLAR &= ~(1<<2);	// Set falling edge detection
 }
 
 /******************************************************************************//*
@@ -167,7 +169,8 @@ float lights_to_beep(uint32_t light) {
  * @return 		None
  *******************************************************************************/
 void lights_start(void) {
-	LPC_GPIOINT->IO2IntEnF |= (1<<5);
+//	LPC_GPIOINT->IO2IntEnF |= (1<<5);
+	NVIC_EnableIRQ(EINT2_IRQn);
 	light_enable();
 	light_setWidth(LIGHT_WIDTH_12BITS);
 	light_setRange(LIGHT_RANGE_4000);
@@ -180,7 +183,8 @@ void lights_start(void) {
  *******************************************************************************/
 void lights_stop(void) {
 	light_shutdown();
-	LPC_GPIOINT->IO2IntEnF &= ~(1<<5);
+	NVIC_DisableIRQ(EINT2_IRQn);
+//	LPC_GPIOINT->IO2IntEnF &= ~(1<<5);
 }
 
 /******************************************************************************//*

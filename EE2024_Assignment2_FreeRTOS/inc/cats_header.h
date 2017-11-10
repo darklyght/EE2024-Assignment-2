@@ -65,7 +65,6 @@ typedef enum {
 } LIGHT_STATE;
 
 typedef struct {
-	uint32_t x1msTicks;
 	uint32_t x1sTicks;
 } TICKS;
 

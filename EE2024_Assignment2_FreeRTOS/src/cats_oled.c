@@ -40,8 +40,8 @@ void acc_display_gen(uint8_t* accDisplay, float acc) {
  * @return 		None
  *******************************************************************************/
 void temp_display(uint8_t* tempDisplay, int32_t temp) {
-	temp_display_gen(tempDisplay, temp);
 	oled_putString(60, 10, (uint8_t*)"     ", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
+	temp_display_gen(tempDisplay, temp);
 	oled_putString(60, 10, tempDisplay, OLED_COLOR_WHITE, OLED_COLOR_BLACK);
 }
 
@@ -52,7 +52,7 @@ void temp_display(uint8_t* tempDisplay, int32_t temp) {
  * @return 		None
  *******************************************************************************/
 void acc_display(uint8_t* accDisplay, float acc) {
-	acc_display_gen(accDisplay, acc);
 	oled_putString(60, 20, (uint8_t*)"     ", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
+	acc_display_gen(accDisplay, acc);
 	oled_putString(60, 20, accDisplay, OLED_COLOR_WHITE, OLED_COLOR_BLACK);
 }

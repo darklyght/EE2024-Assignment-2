@@ -15,13 +15,17 @@
 void temperature_init(void) {
 	PINSEL_CFG_Type PinCfg;
 
-	PinCfg.Funcnum = 0;
+	// Configure EINT1 interrupt for temperature sensor
+	PinCfg.Funcnum = 1;				// Set SW3 to EINT0 function
 	PinCfg.OpenDrain = 0;
 	PinCfg.Pinmode = 0;
-	PinCfg.Portnum = 0;
-	PinCfg.Pinnum = 2;
+	PinCfg.Portnum = 2;
+	PinCfg.Pinnum = 11;
 	PINSEL_ConfigPin(&PinCfg);
-	GPIO_SetDir(0, (1<<2), 0);
+	GPIO_SetDir(2, (1<<11), 0);
+
+	LPC_SC->EXTMODE |= (1<<1);		// Set mode to edge detection
+	LPC_SC->EXTPOLAR &= ~(1<<1);	// Set falling edge detection
 }
 
 /******************************************************************************//*
@@ -35,7 +39,7 @@ void temperature_measure(TICKS* ticks, TEMP* temp) {
 		temp->temperatureT1 = (int)xTaskGetTickCountFromISR();
 	} else if (temp->temperatureT1 && !temp->temperatureT2) {
 		temp->halfPeriods++;
-		if (temp->halfPeriods == TOTAL_HALF_PERIODS) {
+		if (temp->halfPeriods == TOTAL_HALF_PERIODS / 2) {
 			temp->temperatureT2 = (int)xTaskGetTickCountFromISR();
 			if (temp->temperatureT2 > temp->temperatureT1) {
 				temp->temperatureT2 = temp->temperatureT2 - temp->temperatureT1;
@@ -57,8 +61,7 @@ void temperature_measure(TICKS* ticks, TEMP* temp) {
  * @return 		None
  *******************************************************************************/
 void temperature_start(void) {
-	LPC_GPIOINT->IO0IntEnR |= 1<<2;
-	LPC_GPIOINT->IO0IntEnF |= 1<<2;
+	NVIC_EnableIRQ(EINT1_IRQn);
 }
 
 /******************************************************************************//*
@@ -67,6 +70,5 @@ void temperature_start(void) {
  * @return 		None
  *******************************************************************************/
 void temperature_stop(void) {
-	LPC_GPIOINT->IO0IntEnR &= ~(1<<2);
-	LPC_GPIOINT->IO0IntEnF &= ~(1<<2);
+	NVIC_DisableIRQ(EINT1_IRQn);
 }

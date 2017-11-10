@@ -30,14 +30,23 @@ void init_peripherals() {
 	amp_init();
 	NVIC_SetPriorityGrouping(0);
 	NVIC_SetPriority(EINT0_IRQn, NVIC_EncodePriority(0, 6, 0));
+	NVIC_SetPriority(EINT1_IRQn, NVIC_EncodePriority(0, 6, 0));
+	NVIC_SetPriority(EINT2_IRQn, NVIC_EncodePriority(0, 6, 0));
 	NVIC_SetPriority(EINT3_IRQn, NVIC_EncodePriority(0, 7, 0));
 	NVIC_SetPriority(TIMER2_IRQn, NVIC_EncodePriority(0, 8, 0));
+	NVIC_SetPriority(UART3_IRQn, NVIC_EncodePriority(0, 6, 0));
 	NVIC_ClearPendingIRQ(EINT0_IRQn);
+	NVIC_ClearPendingIRQ(EINT1_IRQn);
+	NVIC_ClearPendingIRQ(EINT2_IRQn);
 	NVIC_ClearPendingIRQ(EINT3_IRQn);
 	NVIC_ClearPendingIRQ(TIMER2_IRQn);
+	NVIC_ClearPendingIRQ(UART3_IRQn);
 	NVIC_EnableIRQ(EINT0_IRQn);
+	NVIC_EnableIRQ(EINT1_IRQn);
+	NVIC_EnableIRQ(EINT2_IRQn);
 	NVIC_EnableIRQ(EINT3_IRQn);
 	NVIC_EnableIRQ(TIMER2_IRQn);
+	NVIC_EnableIRQ(UART3_IRQn);
 }
 
 /******************************************************************************//*
@@ -115,4 +124,13 @@ void init_uart(void) {
 	UART_Init(LPC_UART3, &uartCfg);
 
 	UART_TxCmd(LPC_UART3, ENABLE);
+
+	UART_FIFO_CFG_Type fifoCfg;
+	fifoCfg.FIFO_ResetRxBuf = ENABLE;
+	fifoCfg.FIFO_ResetTxBuf = ENABLE;
+	fifoCfg.FIFO_DMAMode = DISABLE;
+	fifoCfg.FIFO_Level = UART_FIFO_TRGLEV0;
+
+	UART_IntConfig(LPC_UART3, UART_INTCFG_RBR, ENABLE);
+	UART_FIFOConfig(LPC_UART3, &fifoCfg);
 }

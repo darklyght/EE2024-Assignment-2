@@ -7,6 +7,7 @@
 
 #include "cats_uart.h"
 
+
 /******************************************************************************//*
  * @brief 		Set the UART message
  * @param[in]	UART_DISPLAY is the string to print to
@@ -27,7 +28,7 @@ void set_uart_message(uint8_t* UART_DISPLAY, char* string) {
  * @return 		None
  *******************************************************************************/
 void uart_display_gen(uint8_t* UART_MESSAGE, uint32_t messageCounter, float acc, int32_t temp) {
-	char s[16] = "";
+	char s[30] = "";
 	sprintf(s, "%03d_Temp_", (int)messageCounter);
 	strcpy((char*)UART_MESSAGE, s);
 	sprintf(s, "%.2f_ACC_", temp / 10.0);

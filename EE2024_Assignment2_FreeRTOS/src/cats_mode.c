@@ -16,7 +16,6 @@ void to_mode_stationary(STATE* state, TICKS* ticks) {
 	oled_putString(0, 0, (uint8_t*)"STATIONARY", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
 	rgb_set(0x00);
 	sseg_set(0xFF, TRUE);
-	vTaskSuspend(xModeTaskHandle);
 	vTaskSuspend(xRGBBlinkHandle);
 	vTaskSuspend(xAmpBeepHandle);
 	vTaskSuspend(xAmpVolumeHandle);
@@ -75,9 +74,9 @@ void in_mode_stationary(void) {
 }
 
 void in_mode_forward(STATE* state, TICKS* ticks, TEMP* temp, DATA* data, DISPLAY* display) {
+	sseg_set(SEGMENT_DISPLAY[ticks->x1sTicks % 16], FALSE);
 	data->acc = acc_measure();
 	data->temp = temp->temperature;
-	sseg_set(SEGMENT_DISPLAY[ticks->x1sTicks % 16], FALSE);
 	if (ticks->x1sTicks % 16 == 5 || ticks->x1sTicks % 16 == 10 || ticks->x1sTicks % 16 == 15) {
 		temp_display(display->temp, data->temp);
 		acc_display(display->acc, data->acc);
@@ -95,7 +94,6 @@ void in_mode_forward(STATE* state, TICKS* ticks, TEMP* temp, DATA* data, DISPLAY
 			counter++;
 		}
 	}
-	temp->temperature = 0;
 	temp->halfPeriods = 0;
 	temp->temperatureT1 = 0;
 	temp->temperatureT2 = 0;
