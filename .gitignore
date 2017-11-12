@@ -1,3 +1,4 @@
 .metadata
 demo
 **/Debug
+*.cproject
