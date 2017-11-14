@@ -7,53 +7,45 @@
  ******************************************************************************/
 
 #include "main.h"
+#include "cats_task_commons.h"
 
 STATE state = {MODE_STATIONARY, ACC_OFF, TEMP_OFF, LIGHT_OFF};
 TICKS ticks = {0};
 TEMP temp = {0, 0, 0, 0};
-uint8_t sw3 = 0;
+//uint8_t sw3 = 0;
 uint8_t log = 0;
 AMP amp = {0, 0};
 DATA data = {0, 0, 0};
 DISPLAY display = {"", "", ""};
 
 static void vSwitchModeTask(void *pvParameters) {
-	portTickType xLastWakeTime;
 	while (1) {
-		if (sw3 > 0) {
-			switch (state.modeState) {
-			case MODE_STATIONARY:
-				xLastWakeTime = xTaskGetTickCount();
-				vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/1);
-				if (sw3 == 1) {
-					sw3 = 0;
-					to_mode_forward(&state, &ticks, &temp, &data, &display);
-					state.modeState = MODE_FORWARD;
-				} else {
-					sw3 = 0;
-					to_mode_reverse(&state, &ticks, &display);
-					state.modeState = MODE_REVERSE;
-				}
-				break;
-			case MODE_FORWARD:
-				sw3 = 0;
-				to_mode_stationary(&state, &ticks);
-				state.modeState = MODE_STATIONARY;
-				break;
-			case MODE_REVERSE:
-				sw3 = 0;
-				to_mode_stationary(&state, &ticks);
-				state.modeState = MODE_STATIONARY;
-				break;
+		xSemaphoreTake(switchModeSemaphore, portMAX_DELAY);
+		switch (state.modeState) {
+		case MODE_STATIONARY:
+			vTaskDelay(configTICK_RATE_HZ/1);
+			if (xSemaphoreTake(switchModeSemaphore, 0) == pdFAIL) {
+				to_mode_forward(&state, &ticks, &temp, &data, &display);
+				state.modeState = MODE_FORWARD;
+			} else {
+				to_mode_reverse(&state, &ticks, &display);
+				state.modeState = MODE_REVERSE;
 			}
+			break;
+		case MODE_FORWARD:
+			to_mode_stationary(&state, &ticks);
+			state.modeState = MODE_STATIONARY;
+			break;
+		case MODE_REVERSE:
+			to_mode_stationary(&state, &ticks);
+			state.modeState = MODE_STATIONARY;
+			break;
 		}
-		xLastWakeTime = xTaskGetTickCount();
-		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/10);
 	}
 }
 
 static void vModeTask(void *pvParameters) {
-	portTickType xLastWakeTime;
+	portTickType xLastWakeTime = xTaskGetTickCount();;
 	while (1) {
 		switch (state.modeState) {
 		case MODE_STATIONARY:
@@ -68,7 +60,6 @@ static void vModeTask(void *pvParameters) {
 			LPC_GPIOINT->IO2IntEnF |= (1<<5);
 			break;
 		}
-		xLastWakeTime = xTaskGetTickCount();
 		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/1);
 	}
 }
@@ -105,21 +96,19 @@ static void vLogger(void *pvParameters) {
 }
 
 static void vRGBBlink(void *pvParameters) {
-	portTickType xLastWakeTime;
+	portTickType xLastWakeTime = xTaskGetTickCount();;
 	while(1) {
 		rgb_blink(&state);
-		xLastWakeTime = xTaskGetTickCount();
 		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/3);
 	}
 }
 
 static void vAmpBeep(void *pvParameters) {
-	portTickType xLastWakeTime;
+	portTickType xLastWakeTime = xTaskGetTickCount();
 	float delay;
 	while (1) {
 		delay = lights_to_beep(data.light);
 		amp_beep(&amp);
-		xLastWakeTime = xTaskGetTickCount();
 		vTaskDelayUntil(&xLastWakeTime, (int)configTICK_RATE_HZ/delay);
 	}
 }
@@ -127,23 +116,19 @@ static void vAmpBeep(void *pvParameters) {
 static void vAmpVolume(void *pvParameters) {
 	portTickType xLastWakeTime;
 	while (1) {
-		if (amp.ampVolume) {
-			GPIO_ClearValue(2, 1<<6);
-			xLastWakeTime = xTaskGetTickCount();
-			vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/250);
-			GPIO_SetValue(2, 1<<6);
-			xLastWakeTime = xTaskGetTickCount();
-			vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/250);
-			GPIO_ClearValue(2, 1<<6);
-			amp.ampVolume = 0;
-		}
+		xSemaphoreTake(ampVolumeSemaphore, portMAX_DELAY);
+		GPIO_ClearValue(2, 1<<6);
 		xLastWakeTime = xTaskGetTickCount();
-		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/10);
+		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/250);
+		GPIO_SetValue(2, 1<<6);
+		xLastWakeTime = xTaskGetTickCount();
+		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/250);
+		GPIO_ClearValue(2, 1<<6);
 	}
 }
 
 void EINT0_IRQHandler(void) {
-	sw3++; // Increment for each press within 1 second.
+	giveAndYield(switchModeSemaphore);
 	LPC_SC->EXTINT |= (1<<0); // Clear interrupt.
 }
 
@@ -189,7 +174,7 @@ void UART3_IRQHandler(void) {
 	uint8_t letter;
 	UART_Receive(LPC_UART3, &letter, 1, BLOCKING);
 	if (letter == 'o') {
-		sw3++;
+		giveAndYield(switchModeSemaphore);
 	} else if (letter == 'l') {
 		log = 1;
 	}
@@ -198,29 +183,33 @@ void UART3_IRQHandler(void) {
 int main(void) {
 	init_peripherals();
 
+	vSemaphoreCreateBinary(switchModeSemaphore);
+	xSemaphoreTake(switchModeSemaphore, 0);
+	vSemaphoreCreateBinary(ampVolumeSemaphore);
+
 	xTaskCreate(vSwitchModeTask, (signed char *) "vSwitchModeTask",
 						configMINIMAL_STACK_SIZE*10, NULL, (tskIDLE_PRIORITY + 4UL),
-						(xTaskHandle *) NULL);
+						NULL);
 
 	xTaskCreate(vModeTask, (signed char *) "vModeTask",
 						configMINIMAL_STACK_SIZE*20, NULL, (tskIDLE_PRIORITY + 3UL),
-						(xTaskHandle *) &xModeTaskHandle);
+						&xModeTaskHandle);
 
 	xTaskCreate(vLogger, (signed char *) "vLogger",
 						configMINIMAL_STACK_SIZE*10, NULL, (tskIDLE_PRIORITY + 3UL),
-						(xTaskHandle *) NULL);
+						NULL);
 
 	xTaskCreate(vRGBBlink, (signed char *) "vRGBBlink",
 							configMINIMAL_STACK_SIZE, NULL, (tskIDLE_PRIORITY + 2UL),
-							(xTaskHandle *) &xRGBBlinkHandle);
+							&xRGBBlinkHandle);
 
 	xTaskCreate(vAmpBeep, (signed char *) "vAmpBeep",
 							configMINIMAL_STACK_SIZE, NULL, (tskIDLE_PRIORITY + 2UL),
-							(xTaskHandle *) &xAmpBeepHandle);
+							&xAmpBeepHandle);
 
 	xTaskCreate(vAmpVolume, (signed char *) "vAmpVolume",
 							configMINIMAL_STACK_SIZE, NULL, (tskIDLE_PRIORITY + 1UL),
-							(xTaskHandle *) &xAmpVolumeHandle);
+							&xAmpVolumeHandle);
 
 	to_mode_stationary(&state, &ticks);
 

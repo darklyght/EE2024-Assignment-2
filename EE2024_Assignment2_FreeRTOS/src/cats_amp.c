@@ -6,6 +6,7 @@
  */
 
 #include "cats_amp.h"
+#include "cats_task_commons.h"
 
 /******************************************************************************//*
  * @brief 		Initialise the amplifier
@@ -108,9 +109,8 @@ void pwm_high(void) {
 void amp_volume(uint8_t rotary, uint8_t* ampVolume) {
 	if (rotary == 0x01) {
 		GPIO_SetValue(2, 1<<7);
-		*ampVolume = 1;
 	} else if (rotary == 0x02) {
 		GPIO_ClearValue(2, 1<<7);
-		*ampVolume = 1;
 	}
+	giveAndYield(ampVolumeSemaphore);
 }

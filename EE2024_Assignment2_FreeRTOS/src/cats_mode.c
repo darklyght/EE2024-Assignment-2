@@ -6,6 +6,7 @@
  */
 
 #include "cats_mode.h"
+#include "cats_task_commons.h"
 
 uint8_t SEGMENT_DISPLAY[16] = "0123456789ABCDEF";
 uint32_t counter = 0;

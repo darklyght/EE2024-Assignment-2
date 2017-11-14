@@ -100,10 +100,4 @@ typedef struct {
 	uint8_t uart[100];
 } DISPLAY;
 
-xTaskHandle xSwitchModeTaskHandle;
-xTaskHandle xModeTaskHandle;
-xTaskHandle xRGBBlinkHandle;
-xTaskHandle xAmpBeepHandle;
-xTaskHandle xAmpVolumeHandle;
-
 #endif /* HEADER_H_ */
