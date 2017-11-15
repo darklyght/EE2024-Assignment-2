@@ -118,7 +118,7 @@ static void vAmpBeep(void *pvParameters) {
 	float delay;
 	while (1) {
 		delay = lights_to_beep(data.light);
-		amp_beep(&amp);
+		amp_toggle(&amp);
 		xLastWakeTime = xTaskGetTickCount();
 		vTaskDelayUntil(&xLastWakeTime, (int)configTICK_RATE_HZ/delay);
 	}
@@ -174,15 +174,6 @@ void EINT3_IRQHandler(void) {
 		LPC_GPIOINT->IO0IntClr |= 1<<24;
 		LPC_GPIOINT->IO0IntClr |= 1<<25;
 	}
-}
-
-void TIMER2_IRQHandler(void) {
-	if (GPIO_ReadValue(0)>>26 & 0x1) {
-		pwm_low();
-	} else {
-		pwm_high();
-	}
-	LPC_TIM2->IR |= 1<<0;
 }
 
 void UART3_IRQHandler(void) {

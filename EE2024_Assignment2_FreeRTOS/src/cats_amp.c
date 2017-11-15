@@ -6,6 +6,15 @@
  */
 
 #include "cats_amp.h"
+#include "sample_music.h"
+#include "lpc17xx_rit.h"
+
+//Number of ticks for 8kHz and 44.1kHz
+#define LOW_FREQ 15000
+#define HIGH_FREQ 2721
+
+const RIT_CMP_VAL slowRitConfig = {LOW_FREQ, 0xFFFFFFFF, 0};
+const RIT_CMP_VAL fastRitConfig = {HIGH_FREQ, 0xFFFFFFFF, 0};
 
 /******************************************************************************//*
  * @brief 		Initialise the amplifier
@@ -43,43 +52,70 @@ void amp_init(void) {
 	LPC_GPIOINT->IO0IntEnF |= 1<<24;
 	LPC_GPIOINT->IO0IntEnF |= 1<<25;
 
-	// Initialise Timer2 for PWM interrupt
-	LPC_SC->PCONP |= 1<<22;		// Power up Timer2
-	LPC_SC->PCLKSEL1 |= 1<<12;	// CCLK
-	LPC_TIM2->MR0 = 1<<18;		// Suitable for LED
-	LPC_TIM2->MCR |= 1<<0;		// Interrupt on Match0
-	LPC_TIM2->MCR |= 1<<1;		// Reset timer on Match0
-	LPC_TIM2->TCR |= 1<<1;		// Reset Timer2
-	LPC_TIM2->TCR &= ~(1<<1);	// Clear Timer2 reset
-	LPC_TIM2->TCR &= ~(1<<0);	// Stop timer
+	// Initialize PWM pins
+	PinCfg.Funcnum = 1;
+	PinCfg.Portnum = 2;
+	PinCfg.Pinnum = 1;
+	PINSEL_ConfigPin(&PinCfg);
+	GPIO_SetDir(2, (1<<1), 1);
+
+	// Initialize PWM Controller
+	PWM_TIMERCFG_Type pwmCfg;
+	pwmCfg.PrescaleOption = PWM_TIMER_PRESCALE_TICKVAL;
+	pwmCfg.PrescaleValue = 1;
+	PWM_Init(LPC_PWM1, PWM_MODE_TIMER, &pwmCfg); //Initialize prescale
+	PWM_Cmd(LPC_PWM1, ENABLE);
+	PWM_CounterCmd(LPC_PWM1, ENABLE); //Start Counter
+	PWM_MATCHCFG_Type matchConfig;
+	matchConfig.MatchChannel = 0;
+	matchConfig.ResetOnMatch = ENABLE;
+	matchConfig.IntOnMatch = DISABLE;
+	matchConfig.StopOnMatch = DISABLE;
+	PWM_ConfigMatch(LPC_PWM1, &matchConfig); //Set TC reset on match 0
+
+	// Initialize Repetitive Interrupt Timer
+	RIT_Init(LPC_RIT);
+	RIT_TimerClearCmd(LPC_RIT, ENABLE);
+	RIT_TimerConfig(LPC_RIT, &slowRitConfig);
 }
 
 /******************************************************************************//*
- * @brief 		Alternate the amplifier on and off
+ * @brief 		Toggles the amplifier on and off
  * @param[in]	None
  * @return 		None
  *******************************************************************************/
-void amp_beep(AMP* amp) {
+void amp_toggle(AMP* amp) {
 	if (amp->pwmOn) {
-		pwm_low(); 					// Set pin to low
-		LPC_TIM2->IR |= 1<<0; 		// Clear Timer2 interrupt
-		LPC_TIM2->TCR &= ~(1<<0); 	// Stop Timer2
-		amp->pwmOn = 0;				// Set pwmOn flag to 0
+		amp_stop();
+		amp->pwmOn = 0;
 	} else {
-		pwm_high();					// Set pin to high
-		LPC_TIM2->IR |= 1<<0;		// Clear Timer2 interrupt
-		LPC_TIM2->TCR |= 1 << 0;	// Start Timer2
-		amp->pwmOn = 1;				// Set pwmOn flag to 1
+		amp_start();
+		amp->pwmOn = 1;
 	}
 }
 
+void amp_beep_mode() {
+	RIT_Cmd(LPC_RIT, DISABLE);
+	PWM_MatchUpdate(LPC_PWM1, 0, 1<<18, PWM_MATCH_UPDATE_NEXT_RST); //Set PWM period time
+	PWM_MatchUpdate(LPC_PWM1, 2, 1<<17, PWM_MATCH_UPDATE_NEXT_RST); //Set PWM active time
+}
+
 /******************************************************************************//*
- * @brief 		Stop the PWM by stopping Timer2
+ * @brief 		Start the PWM by enabling pwm1.2 output
+ * @param[in]	None
+ * @return 		None
+ *******************************************************************************/
+void amp_start(void) {
+	PWM_ChannelCmd(LPC_PWM1, 2, ENABLE); //Enable pwm channel output
+}
+
+/******************************************************************************//*
+ * @brief 		Stop the PWM by disabling pwm1.2 output
  * @param[in]	None
  * @return 		None
  *******************************************************************************/
 void amp_stop(void) {
-	LPC_TIM2->TCR &= ~(1<<0);
+	PWM_ChannelCmd(LPC_PWM1, 2, DISABLE); //Disable pwm channel output
 }
 
 /******************************************************************************//*
@@ -113,4 +149,21 @@ void amp_volume(uint8_t rotary, uint8_t* ampVolume) {
 		GPIO_ClearValue(2, 1<<7);
 		*ampVolume = 1;
 	}
+}
+
+uint32_t playerCounter = 0;
+
+void amp_music_mode() {
+	playerCounter = 0;
+	TIM_Cmd(LPC_TIM2, ENABLE);
+
+	PWM_MatchUpdate(LPC_PWM1, 0, 256, PWM_MATCH_UPDATE_NEXT_RST); //Set PWM period time
+	PWM_MatchUpdate(LPC_PWM1, 2, SAMPLE_MUSIC[0], PWM_MATCH_UPDATE_NEXT_RST); //Set PWM active time
+	amp_start();
+}
+
+void RIT_IRQHandler(void) {
+	playerCounter = (playerCounter + 1) % sizeof(SAMPLE_MUSIC);
+	PWM_MatchUpdate(LPC_PWM1, 2, SAMPLE_MUSIC[playerCounter], PWM_MATCH_UPDATE_NEXT_RST); //Set PWM active time
+	LPC_RIT->RICTRL |= 1<<0;
 }

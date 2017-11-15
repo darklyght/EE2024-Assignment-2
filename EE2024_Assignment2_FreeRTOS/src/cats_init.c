@@ -33,19 +33,19 @@ void init_peripherals() {
 	NVIC_SetPriority(EINT1_IRQn, NVIC_EncodePriority(0, 6, 0));
 	NVIC_SetPriority(EINT2_IRQn, NVIC_EncodePriority(0, 6, 0));
 	NVIC_SetPriority(EINT3_IRQn, NVIC_EncodePriority(0, 7, 0));
-	NVIC_SetPriority(TIMER2_IRQn, NVIC_EncodePriority(0, 8, 0));
+	NVIC_SetPriority(RIT_IRQn, NVIC_EncodePriority(0, 8, 0));
 	NVIC_SetPriority(UART3_IRQn, NVIC_EncodePriority(0, 6, 0));
 	NVIC_ClearPendingIRQ(EINT0_IRQn);
 	NVIC_ClearPendingIRQ(EINT1_IRQn);
 	NVIC_ClearPendingIRQ(EINT2_IRQn);
 	NVIC_ClearPendingIRQ(EINT3_IRQn);
-	NVIC_ClearPendingIRQ(TIMER2_IRQn);
+	NVIC_ClearPendingIRQ(RIT_IRQn);
 	NVIC_ClearPendingIRQ(UART3_IRQn);
 	NVIC_EnableIRQ(EINT0_IRQn);
 	NVIC_EnableIRQ(EINT1_IRQn);
 	NVIC_EnableIRQ(EINT2_IRQn);
 	NVIC_EnableIRQ(EINT3_IRQn);
-	NVIC_EnableIRQ(TIMER2_IRQn);
+	NVIC_EnableIRQ(RIT_IRQn);
 	NVIC_EnableIRQ(UART3_IRQn);
 }
 

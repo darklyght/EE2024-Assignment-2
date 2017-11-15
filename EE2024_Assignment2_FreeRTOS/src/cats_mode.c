@@ -28,6 +28,7 @@ void to_mode_stationary(STATE* state, TICKS* ticks) {
 	state->tempState = TEMP_OFF;
 	state->lightState = LIGHT_OFF;
 	ticks->x1sTicks = 0;
+	amp_music_mode();
 }
 
 void to_mode_forward(STATE* state, TICKS* ticks, TEMP* temp, DATA* data, DISPLAY* display) {
@@ -67,6 +68,7 @@ void to_mode_reverse(STATE* state, TICKS* ticks, DISPLAY* display) {
 	state->tempState = TEMP_OFF;
 	state->lightState = LIGHT_NORMAL;
 	ticks->x1sTicks = 0;
+	amp_beep_mode();
 }
 
 void in_mode_stationary(void) {
