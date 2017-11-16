@@ -29,12 +29,12 @@ void init_peripherals() {
 	rgb_init();
 	amp_init();
 	NVIC_SetPriorityGrouping(0);
-	NVIC_SetPriority(EINT0_IRQn, NVIC_EncodePriority(0, 6, 0));
-	NVIC_SetPriority(EINT1_IRQn, NVIC_EncodePriority(0, 6, 0));
-	NVIC_SetPriority(EINT2_IRQn, NVIC_EncodePriority(0, 6, 0));
-	NVIC_SetPriority(EINT3_IRQn, NVIC_EncodePriority(0, 7, 0));
-	NVIC_SetPriority(TIMER2_IRQn, NVIC_EncodePriority(0, 8, 0));
-	NVIC_SetPriority(UART3_IRQn, NVIC_EncodePriority(0, 6, 0));
+	NVIC_SetPriority(EINT0_IRQn, NVIC_EncodePriority(0, 7, 0));
+	NVIC_SetPriority(EINT1_IRQn, NVIC_EncodePriority(0, 9, 0));
+	NVIC_SetPriority(EINT2_IRQn, NVIC_EncodePriority(0, 8, 0));
+	NVIC_SetPriority(EINT3_IRQn, NVIC_EncodePriority(0, 6, 0));
+	NVIC_SetPriority(TIMER2_IRQn, NVIC_EncodePriority(0, 10, 0));
+	NVIC_SetPriority(UART3_IRQn, NVIC_EncodePriority(0, 11, 0));
 	NVIC_ClearPendingIRQ(EINT0_IRQn);
 	NVIC_ClearPendingIRQ(EINT1_IRQn);
 	NVIC_ClearPendingIRQ(EINT2_IRQn);

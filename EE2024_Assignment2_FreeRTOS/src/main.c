@@ -68,27 +68,25 @@ static void vLogger(void *pvParameters) {
 	portTickType xLastWakeTime;
 	char s[40] = "";
 	while (1) {
-		if (log) {
-			log = 0;
-			switch(state.modeState) {
-			case MODE_STATIONARY:
-				set_uart_message(display.uart, "STATIONARY MODE\r\n");
-				UART_Send(LPC_UART3, display.uart, strlen((char*)display.uart), BLOCKING);
-				break;
-			case MODE_FORWARD:
-				data.acc = acc_measure();
-				data.temp = temp.temperature;
-				sprintf(s, "FORWARD MODE | TEMPERATURE: %.2f ACCELERATION: %.2f\r\n", data.temp / 10.0, data.acc);
-				set_uart_message(display.uart, s);
-				UART_Send(LPC_UART3, display.uart, strlen((char*)display.uart), BLOCKING);
-				break;
-			case MODE_REVERSE:
-				data.light = lights_measure();
-				sprintf(s, "REVERSE MODE | LIGHT INTENSITY: %d\r\n", (int)data.light);
-				set_uart_message(display.uart, s);
-				UART_Send(LPC_UART3, display.uart, strlen((char*)display.uart), BLOCKING);
-				break;
-			}
+		xSemaphoreTake(logSemaphore, portMAX_DELAY);
+		switch(state.modeState) {
+		case MODE_STATIONARY:
+			set_uart_message(display.uart, "STATIONARY MODE\r\n");
+			UART_Send(LPC_UART3, display.uart, strlen((char*)display.uart), BLOCKING);
+			break;
+		case MODE_FORWARD:
+			data.acc = acc_measure();
+			data.temp = temp.temperature;
+			sprintf(s, "FORWARD MODE | TEMPERATURE: %.2f ACCELERATION: %.2f\r\n", data.temp / 10.0, data.acc);
+			set_uart_message(display.uart, s);
+			UART_Send(LPC_UART3, display.uart, strlen((char*)display.uart), BLOCKING);
+			break;
+		case MODE_REVERSE:
+			data.light = lights_measure();
+			sprintf(s, "REVERSE MODE | LIGHT INTENSITY: %d\r\n", (int)data.light);
+			set_uart_message(display.uart, s);
+			UART_Send(LPC_UART3, display.uart, strlen((char*)display.uart), BLOCKING);
+			break;
 		}
 		xLastWakeTime = xTaskGetTickCount();
 		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/5);
@@ -177,7 +175,7 @@ void UART3_IRQHandler(void) {
 	if (letter == 'o') {
 		giveAndYield(switchModeSemaphore);
 	} else if (letter == 'l') {
-		log = 1;
+		giveAndYield(logSemaphore);
 	}
 }
 
@@ -187,6 +185,8 @@ int main(void) {
 	vSemaphoreCreateBinary(switchModeSemaphore);
 	xSemaphoreTake(switchModeSemaphore, 0);
 	vSemaphoreCreateBinary(ampVolumeSemaphore);
+	vSemaphoreCreateBinary(logSemaphore);
+	xSemaphoreTake(logSemaphore, 0);
 
 	xTaskCreate(vSwitchModeTask, (signed char *) "vSwitchModeTask",
 						configMINIMAL_STACK_SIZE*10, NULL, (tskIDLE_PRIORITY + 4UL),

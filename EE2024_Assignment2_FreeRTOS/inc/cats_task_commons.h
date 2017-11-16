@@ -20,6 +20,7 @@ xTaskHandle xAmpVolumeHandle;
 
 xSemaphoreHandle switchModeSemaphore;
 xSemaphoreHandle ampVolumeSemaphore;
+xSemaphoreHandle logSemaphore;
 
 #define giveAndYield( xSemaphore ) {																		\
 		portBASE_TYPE higherPriorityWoken = pdFALSE;						\
