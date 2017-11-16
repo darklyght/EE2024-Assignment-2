@@ -16,7 +16,7 @@ void temperature_init(void) {
 	PINSEL_CFG_Type PinCfg;
 
 	// Configure EINT1 interrupt for temperature sensor
-	PinCfg.Funcnum = 1;				// Set SW3 to EINT0 function
+	PinCfg.Funcnum = 1;				// Set to EINT1 function
 	PinCfg.OpenDrain = 0;
 	PinCfg.Pinmode = 0;
 	PinCfg.Portnum = 2;
@@ -34,7 +34,7 @@ void temperature_init(void) {
  * @param[in]	temp is the temp state of the device
  * @return 		None
  *******************************************************************************/
-void temperature_measure(TICKS* ticks, TEMP* temp) {
+void temperature_measure(TEMP* temp) {
 	if (!temp->temperatureT1 && !temp->temperatureT2) {
 		temp->temperatureT1 = (int)xTaskGetTickCountFromISR();
 	} else if (temp->temperatureT1 && !temp->temperatureT2) {

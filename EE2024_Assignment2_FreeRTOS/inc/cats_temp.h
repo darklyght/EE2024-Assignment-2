@@ -11,7 +11,7 @@
 #include "cats_header.h"
 
 void temperature_init(void);
-void temperature_measure(TICKS* ticks, TEMP* temp);
+void temperature_measure(TEMP* temp);
 void temperature_start(void);
 void temperature_stop(void);
 
