@@ -65,7 +65,7 @@ static void vModeTask(void *pvParameters) {
 		case MODE_REVERSE:
 			in_mode_reverse(&state, &data, &amp, &display);
 			lights_to_led_change(data.light);
-			LPC_GPIOINT->IO2IntEnF |= (1<<5);
+			NVIC_EnableIRQ(EINT2_IRQn);
 			break;
 		}
 		xLastWakeTime = xTaskGetTickCount();
@@ -148,7 +148,7 @@ void EINT0_IRQHandler(void) {
 }
 
 void EINT1_IRQHandler(void) {
-	temperature_measure(&ticks, &temp);
+	temperature_measure(&temp);
 	if (state.tempState == TEMP_NORMAL && temp.temperature > TEMP_THRESHOLD) {
 		oled_putString(0, 40, (uint8_t*)"Temp. too high", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
 		state.tempState = TEMP_HIGH;
@@ -158,6 +158,7 @@ void EINT1_IRQHandler(void) {
 
 void EINT2_IRQHandler(void) {
 	in_mode_reverse(&state, &data, &amp, &display);
+	NVIC_DisableIRQ(EINT2_IRQn);
 	light_clear_interrupt();
 	LPC_SC->EXTINT |= (1<<2); // Clear interrupt.
 }

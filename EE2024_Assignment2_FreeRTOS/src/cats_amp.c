@@ -46,7 +46,7 @@ void amp_init(void) {
 	// Initialise Timer2 for PWM interrupt
 	LPC_SC->PCONP |= 1<<22;		// Power up Timer2
 	LPC_SC->PCLKSEL1 |= 1<<12;	// CCLK
-	LPC_TIM2->MR0 = 1<<18;		// Suitable for LED
+	LPC_TIM2->MR0 = 1<<18;		// Not too fast or too slow
 	LPC_TIM2->MCR |= 1<<0;		// Interrupt on Match0
 	LPC_TIM2->MCR |= 1<<1;		// Reset timer on Match0
 	LPC_TIM2->TCR |= 1<<1;		// Reset Timer2

@@ -25,7 +25,7 @@ void lights_init(void) {
 	// Configure EINT2 interrupt for light sensor
 	PINSEL_CFG_Type PinCfg;
 
-	PinCfg.Funcnum = 1;				// Set SW3 to EINT0 function
+	PinCfg.Funcnum = 1;				// Set to EINT2 function
 	PinCfg.OpenDrain = 0;
 	PinCfg.Pinmode = 0;
 	PinCfg.Portnum = 2;
@@ -100,7 +100,7 @@ void lights_to_led_change(uint32_t light) {
 	if ((int)(currOn - toTurnOn) < 0) {
 		for (i = 0; i < 16; i++) {
 			if (~currOn & toTurnOn & (1<<i)) {
-				pca9532_setLeds (currOn | 1<<i, ~(currOn | 1<<i));
+				pca9532_setLeds(currOn | 1<<i, ~(currOn | 1<<i));
 				xLastWakeTime = xTaskGetTickCount();
 				vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/100);
 				currOn = pca9532_getLedState(TRUE);
@@ -111,7 +111,7 @@ void lights_to_led_change(uint32_t light) {
 	} else if ((int)(currOn - toTurnOn) > 0) {
 		for (i = 15; i >= 0; i--) {
 			if (~toTurnOn & currOn & (1<<i)) {
-				pca9532_setLeds (currOn & ~(1<<i), ~(currOn & ~(1<<i)));
+				pca9532_setLeds(currOn & ~(1<<i), ~(currOn & ~(1<<i)));
 				xLastWakeTime = xTaskGetTickCount();
 				vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/100);
 				currOn = pca9532_getLedState(TRUE);
