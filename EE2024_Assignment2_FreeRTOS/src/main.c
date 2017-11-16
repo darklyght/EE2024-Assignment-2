@@ -12,7 +12,6 @@
 STATE state = {MODE_STATIONARY, ACC_OFF, TEMP_OFF, LIGHT_OFF};
 TICKS ticks = {0};
 TEMP temp = {0, 0, 0, 0};
-//uint8_t sw3 = 0;
 uint8_t log = 0;
 AMP amp = {0, 0};
 DATA data = {0, 0, 0};
@@ -45,7 +44,7 @@ static void vSwitchModeTask(void *pvParameters) {
 }
 
 static void vModeTask(void *pvParameters) {
-	portTickType xLastWakeTime = xTaskGetTickCount();;
+	portTickType xLastWakeTime = xTaskGetTickCount();
 	while (1) {
 		switch (state.modeState) {
 		case MODE_STATIONARY:
@@ -65,7 +64,6 @@ static void vModeTask(void *pvParameters) {
 }
 
 static void vLogger(void *pvParameters) {
-	portTickType xLastWakeTime;
 	char s[40] = "";
 	while (1) {
 		xSemaphoreTake(logSemaphore, portMAX_DELAY);
@@ -88,8 +86,6 @@ static void vLogger(void *pvParameters) {
 			UART_Send(LPC_UART3, display.uart, strlen((char*)display.uart), BLOCKING);
 			break;
 		}
-		xLastWakeTime = xTaskGetTickCount();
-		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/5);
 	}
 }
 
@@ -151,12 +147,12 @@ void EINT3_IRQHandler(void) {
 		oled_putString(0, 50, (uint8_t*)"Air bag released", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
 		state.accState = ACC_HIGH;
 		LPC_GPIOINT->IO0IntEnR &= ~(1<<3);
-		LPC_GPIOINT->IO0IntClr |= 1<<3;
+		LPC_GPIOINT->IO0IntClr |= 1<<3; // Clear interrupt
 	}
 	if ((LPC_GPIOINT->IO0IntStatF>>24) & 0x1 || (LPC_GPIOINT->IO0IntStatF>>25) & 0x1) {
 		amp_volume(rotary_read(), &(amp.ampVolume));
 		LPC_GPIOINT->IO0IntClr |= 1<<24;
-		LPC_GPIOINT->IO0IntClr |= 1<<25;
+		LPC_GPIOINT->IO0IntClr |= 1<<25; // Clear interrupt
 	}
 }
 

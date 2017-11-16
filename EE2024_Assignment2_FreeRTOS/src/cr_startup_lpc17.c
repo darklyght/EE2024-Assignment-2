@@ -251,9 +251,7 @@ ResetISR(void) {
           "        blt     zero_loop");
 
 #ifdef __USE_CMSIS
-    printf("System Core Clock: %u", SystemCoreClock);
 	SystemInit();
-	printf("System Core Clock: %u", SystemCoreClock);
 #endif
 
 #if defined (__cplusplus)
