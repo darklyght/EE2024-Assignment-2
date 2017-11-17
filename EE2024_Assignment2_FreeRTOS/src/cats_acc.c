@@ -73,11 +73,11 @@ void acc_calibrate(void) {
 	buf[0] = ACC_ADDR_XOUT8;
 	I2CWrite(ACC_I2C_ADDR, buf, 1);
 	I2CRead(ACC_I2C_ADDR, buf, 1);
-	printf("Initial acceleration reading: %d\n", (int)buf[0]);
+	//printf("Initial acceleration reading: %d\n", (int)buf[0]);
 
 	// Set offset register to appropriate value
 	buf[1] = ((buf[0]^0xFF) + 1)<<1; // E.g. buf[0] = -4 = 11111100, buf[0]^0xFF = 00000011, buf[1] = 00001000 = 8
-	printf("Offset adjustment: %d\n", (int)buf[1]);
+	//printf("Offset adjustment: %d\n", (int)buf[1]);
 	buf[0] = ACC_ADDR_XOFFL;
 	I2CWrite(ACC_I2C_ADDR, buf, 2);
 }
